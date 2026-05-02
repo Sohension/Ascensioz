@@ -5,7 +5,6 @@ import Link from "next/link";
 import { AnimatedGridPattern } from "@/components/ui/animated-grid-pattern";
 import { Rajdhani, Montserrat } from "next/font/google";
 import Navbar from "@/components/big-components/Navbar";
-import Image from "next/image";
 import { motion, useScroll, useTransform } from "framer-motion";
 
 
@@ -16,6 +15,7 @@ export default function Hero() {
   const { scrollY } = useScroll();
 
   // 👇 Background moves slower
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const yImage = useTransform(scrollY, [0, 500], [0, 80]);
 
   // 👇 Text moves faster

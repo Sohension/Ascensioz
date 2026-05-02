@@ -171,9 +171,3 @@
   scrollbar-color: #151d3a transparent;
 }
 
-/* Hide default cursor everywhere */
-*,
-*::before,
-*::after {
-  cursor: none !important;
-}

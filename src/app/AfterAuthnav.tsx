@@ -1,10 +1,11 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import Link from "next/link";
 import Image from "next/image";
 import { Rajdhani } from "next/font/google";
 import { createClient } from "@/lib/client";
+import { useRouter } from "next/navigation";
 
 const rajdhani = Rajdhani({
   subsets: ["latin"],
@@ -18,26 +19,55 @@ export default function Navbar() {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const [user, setUser] = useState<any>(null);
 
+  const router = useRouter();
+
+  // Toast states
+  const [toastVisible, setToastVisible] = useState(false);
+  const [toastMounted, setToastMounted] = useState(false);
+  const hideTimer = useRef<NodeJS.Timeout | null>(null);
+  const unmountTimer = useRef<NodeJS.Timeout | null>(null);
+
   const supabase = createClient();
 
- useEffect(() => {
-   const getSession = async () => {
-     const { data } = await supabase.auth.getSession();
-     setUser(data.session?.user ?? null);
-   };
+  useEffect(() => {
+    const getSession = async () => {
+      const { data } = await supabase.auth.getSession();
+      setUser(data.session?.user ?? null);
+    };
 
-   getSession();
+    getSession();
 
-   const { data: listener } = supabase.auth.onAuthStateChange(
-     (_event, session) => {
-       setUser(session?.user ?? null);
-     },
-   );
+    const { data: listener } = supabase.auth.onAuthStateChange(
+      (_event, session) => {
+        setUser(session?.user ?? null);
+      },
+    );
 
-   return () => {
-     listener.subscription.unsubscribe();
-   };
- },);
+    return () => {
+      listener.subscription.unsubscribe();
+    };
+  },);
+
+  const showComingSoon = (e: React.MouseEvent) => {
+    e.preventDefault();
+
+    if (hideTimer.current) clearTimeout(hideTimer.current);
+    if (unmountTimer.current) clearTimeout(unmountTimer.current);
+
+    setToastMounted(true);
+
+    requestAnimationFrame(() => {
+      setToastVisible(true);
+    });
+
+    hideTimer.current = setTimeout(() => {
+      setToastVisible(false);
+    }, 2000);
+
+    unmountTimer.current = setTimeout(() => {
+      setToastMounted(false);
+    }, 2300);
+  };
 
   const avatar =
     user?.user_metadata?.avatar_url ||
@@ -45,7 +75,7 @@ export default function Navbar() {
     "/default-avatar.png";
 
   const navLinks = [
-    { name: "Home", href: "/" },
+    { name: "Home", href: "/dashboard" },
     {
       name: "Learn",
       children: [
@@ -61,12 +91,20 @@ export default function Navbar() {
         { name: "Contests", href: "/practice/contests" },
       ],
     },
-    { name: "Community", href: "/community" },
-    { name: "Events", href: "/events" },
+    {
+      name: "Community",
+      children: [
+        { name: "Blog", href: "/community/blog" },
+        { name: "Clans", href: "/community/clans" },
+        { name: "Friends", href: "/community/friends" },
+        { name: "Leaderboard", href: "/community/leaderboard" },
+      ],
+    },
+    { name: "Events", href: "/events", comingSoon: true },
   ];
 
   return (
-    <nav className={`w-full ${rajdhani.className}`}>
+    <nav className={`w-full ${rajdhani.className} z-50`}>
       <div className="max-w-7xl mx-auto px-4">
         <div className="flex justify-between items-center h-16">
           {/* Logo */}
@@ -89,15 +127,20 @@ export default function Navbar() {
                   {link.href ? (
                     <Link
                       href={link.href}
-                      className="relative group tracking-wide"
+                      onClick={link.comingSoon ? showComingSoon : undefined}
+                      className={`relative group tracking-wide ${
+                        link.comingSoon
+                          ? "text-gray-400 cursor-not-allowed"
+                          : ""
+                      }`}
                     >
                       {link.name}
-                      <span className="absolute left-0 -bottom-1 h-0.5 w-0 bg-black transition-all duration-300 group-hover:w-full"></span>
+                      {!link.comingSoon && (
+                        <span className="absolute left-0 -bottom-1 h-0.5 w-0 bg-black transition-all duration-300 group-hover:w-full"></span>
+                      )}
                     </Link>
                   ) : (
-                    <span className="cursor-pointer tracking-wide">
-                      {link.name}
-                    </span>
+                    <span className="tracking-wide">{link.name}</span>
                   )}
 
                   {hasDropdown && (
@@ -128,7 +171,6 @@ export default function Navbar() {
 
           {/* Right Side */}
           <div className="flex items-center gap-4">
-            {/* Profile Avatar */}
             {user && (
               <div
                 className="relative"
@@ -143,7 +185,6 @@ export default function Navbar() {
                   className="rounded-full cursor-pointer"
                 />
 
-                {/* Flyover */}
                 <div
                   className={`absolute right-0 top-full mt-2 w-44 rounded-xl shadow-lg bg-white transition-all duration-200 ${
                     isProfileOpen
@@ -166,9 +207,11 @@ export default function Navbar() {
                       Profile
                     </Link>
 
+                    {/* ✅ FIXED LOGOUT */}
                     <button
                       onClick={async () => {
                         await supabase.auth.signOut();
+                        router.replace("/auth/login");
                       }}
                       className="text-left px-3 py-2 rounded-md hover:bg-gray-100"
                     >
@@ -183,7 +226,6 @@ export default function Navbar() {
             <button
               className="md:hidden text-xl"
               onClick={() => setIsOpen(!isOpen)}
-              aria-label="Toggle Menu"
             >
               {isOpen ? "✕" : "☰"}
             </button>
@@ -201,7 +243,17 @@ export default function Navbar() {
           {navLinks.map((link) => (
             <div key={link.name}>
               {link.href ? (
-                <Link href={link.href} onClick={() => setIsOpen(false)}>
+                <Link
+                  href={link.href}
+                  onClick={(e) => {
+                    if (link.comingSoon) {
+                      showComingSoon(e);
+                    } else {
+                      setIsOpen(false);
+                    }
+                  }}
+                  className={link.comingSoon ? "text-gray-400" : ""}
+                >
                   {link.name}
                 </Link>
               ) : (
@@ -225,6 +277,25 @@ export default function Navbar() {
           ))}
         </div>
       </div>
+
+      {/* Toast */}
+      {toastMounted && (
+        <div className="fixed bottom-6 left-1/2 -translate-x-1/2 z-50">
+          <div
+            className={`
+              bg-black/90 backdrop-blur-md text-white px-5 py-2 rounded-xl shadow-xl text-sm
+              transform transition-all duration-300 ease-out
+              ${
+                toastVisible
+                  ? "opacity-100 translate-y-0 scale-100"
+                  : "opacity-0 translate-y-6 scale-95"
+              }
+            `}
+          >
+            Events Coming Soon 🚀
+          </div>
+        </div>
+      )}
     </nav>
   );
 }
