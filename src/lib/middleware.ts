@@ -18,9 +18,11 @@ export async function updateSession(request: NextRequest) {
           cookiesToSet.forEach(({ name, value }) =>
             request.cookies.set(name, value),
           );
+
           supabaseResponse = NextResponse.next({
             request,
           });
+
           cookiesToSet.forEach(({ name, value, options }) =>
             supabaseResponse.cookies.set(name, value, options),
           );
@@ -29,16 +31,19 @@ export async function updateSession(request: NextRequest) {
     },
   );
 
-  const { data } = await supabase.auth.getClaims();
-  const user = data?.claims;
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
 
-  // ✅ Modified condition to allow "/" as public
-  if (
-    !user &&
-    request.nextUrl.pathname !== "/" && // <-- allow global public page
-    !request.nextUrl.pathname.startsWith("/login") &&
-    !request.nextUrl.pathname.startsWith("/auth")
-  ) {
+  // Public routes
+  const isPublicRoute =
+    request.nextUrl.pathname === "/" ||
+    request.nextUrl.pathname.startsWith("/login") ||
+    request.nextUrl.pathname.startsWith("/auth") ||
+    request.nextUrl.pathname.startsWith("/api/game");
+
+  // Redirect unauthenticated users
+  if (!user && !isPublicRoute) {
     const url = request.nextUrl.clone();
     url.pathname = "/auth/login";
     return NextResponse.redirect(url);

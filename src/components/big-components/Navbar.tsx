@@ -72,7 +72,8 @@ export default function Navbar() {
               {link.name}
             </Link>
           ))}
-        </div>
+        </div>cd my-app
+        n
       </div>
     </nav>
   );
