@@ -5,7 +5,7 @@ import Link from "next/link";
 import { AnimatedGridPattern } from "@/components/ui/animated-grid-pattern";
 import { Rajdhani, Montserrat } from "next/font/google";
 import Navbar from "@/components/big-components/Navbar";
-import { motion, useScroll, useTransform } from "framer-motion";
+import { motion } from "framer-motion";
 
 const rajdhani = Rajdhani({
   weight: ["400", "500", "600", "700"],
@@ -18,10 +18,6 @@ const montserrat = Montserrat({
 });
 
 export default function Hero() {
-  const { scrollY } = useScroll();
-
-  const yText = useTransform(scrollY, [0, 800], [0, 140]);
-
   const learningTopics = [
     "Python",
     "Artificial Intelligence",
@@ -53,7 +49,6 @@ export default function Hero() {
           </video>
 
           <motion.div
-            style={{ y: yText }}
             initial={{ opacity: 0, y: 25 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 1, ease: "easeOut" }}
@@ -86,7 +81,7 @@ export default function Hero() {
               <p className="text-base md:text-lg text-gray-500 leading-relaxed">
                 You are one of the first people to experience Ascension. This is
                 a very early prototype, so you may come across a few bugs or
-                unfinished features. Dont worry — we're improving the game with
+                unfinished features. Dont worry — were improving the game with
                 every update, and your feedback will help shape its future.
               </p>
             </div>
@@ -112,6 +107,7 @@ export default function Hero() {
             </div>
           </motion.div>
         </section>
+
         {/* ================= SECTION 2 — WHY WE EXIST ================= */}
         <section className="relative min-h-screen flex flex-col justify-center pt-24 sm:pt-32 border-t border-gray-100 mt-24 md:mt-72 lg:mt-87.5">
           <div className="flex flex-col gap-12 md:gap-24 max-w-5xl">
