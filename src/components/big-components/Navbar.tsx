@@ -14,10 +14,9 @@ export default function Navbar() {
   const [isOpen, setIsOpen] = useState(false);
 
   const navLinks = [
-    { name: "Home", href: "/" },
-    { name: "Learn", href: "/learn" },
-    { name: "Practice", href: "/practice" },
-    { name: "Pricing", href: "/pricing" },
+    { name: "Home", href: "/dashboard" },
+    { name: "Learn", href: "/dashboard" },
+    { name: "Practice", href: "/dashboard" },
   ];
 
   return (
@@ -72,7 +71,7 @@ export default function Navbar() {
               {link.name}
             </Link>
           ))}
-        </div>cd my-app
+        </div>
         n
       </div>
     </nav>

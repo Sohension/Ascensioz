@@ -90,7 +90,7 @@ export default function Hero() {
               <Link href="/auth/login" className="w-full sm:w-auto">
                 <Button
                   variant="default"
-                  className={`${rajdhani.className} w-full sm:w-auto text-xl md:text-lg px-8 md:px-6 py-6 md:py-3 shadow-xl text-black transition-all rounded-xl tracking-wide hover:cursor-pointer`}
+                  className={`${rajdhani.className} w-full bg-yellow-400 sm:w-auto text-xl md:text-lg px-8 md:px-6 py-6 md:py-3 text-black transition-all duration-300 rounded-xl tracking-wide hover:cursor-pointer hover:shadow-[0_0_20px_rgba(255,255,255,0.9),0_0_35px_rgba(250,204,21,0.85)]`}
                 >
                   🚀 Start Learning
                 </Button>
@@ -271,11 +271,11 @@ export default function Hero() {
 
             <div className="pt-4 md:pt-6">
               <Link
-                href="/auth/register"
+                href="/auth/login"
                 className="inline-block w-full sm:w-auto"
               >
                 <Button
-                  className={`${rajdhani.className} w-full sm:w-auto text-xl md:text-xl px-8 md:px-10 py-6 md:py-4 bg-gray-950 text-black hover:bg-gray-800 transition-all font-bold tracking-wide rounded-2xl shadow-2xl hover:cursor-pointer shadow-gray-950/10`}
+                  className={`${rajdhani.className} w-full z-20 sm:w-auto text-xl hover:text-white md:text-xl px-8 md:px-10 py-6 md:py-4 bg-yellow-400 text-black hover:bg-gray-800 transition-all font-bold tracking-wide rounded-2xl shadow-2xl hover:cursor-pointer shadow-gray-950/10`}
                 >
                   Start Learning Free
                 </Button>
