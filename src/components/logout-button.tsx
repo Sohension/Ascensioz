@@ -1,9 +1,15 @@
 'use client'
 
 import { useRouter } from 'next/navigation'
+import { Rajdhani } from 'next/font/google'
 
 import { createClient } from '@/lib/client'
 import { Button } from '@/components/ui/button'
+
+const rajdhani = Rajdhani({
+  subsets: ['latin'],
+  weight: ['400', '500', '600', '700'],
+})
 
 export function LogoutButton() {
   const router = useRouter()
@@ -15,5 +21,5 @@ export function LogoutButton() {
     router.push('/auth/login')
   }
 
-  return <Button className='hover:cursor-pointer' onClick={logout}>Logout</Button>
+  return <Button className={`${rajdhani.className} hover:cursor-pointer`} onClick={logout}>Logout</Button>
 }

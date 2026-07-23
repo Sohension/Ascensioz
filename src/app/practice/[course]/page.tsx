@@ -52,7 +52,7 @@ export default async function CoursePage({
 
   if (!course) {
     return (
-      <div className="flex min-h-screen items-center justify-center bg-slate-100">
+      <div className="flex min-h-screen items-center justify-center bg-slate-100 dark:bg-gray-900">
         <Card className="w-full max-w-md border-slate-300 shadow-lg">
           <CardContent className="py-12 text-center">
             <h2
@@ -80,7 +80,7 @@ export default async function CoursePage({
   const challenges = await getChallenges(course.id);
 
   return (
-    <div className="min-h-screen bg-linear-to-br from-slate-100 via-slate-200 to-slate-300 px-4 pb-10 pt-32 sm:px-6 sm:pt-36 md:px-8 md:pt-40 lg:px-10 lg:pt-44 lg:pb-14">
+    <div className="min-h-screen bg-linear-to-br from-slate-100 via-slate-200 to-slate-300 dark:bg-gray-900 px-4 pb-10 pt-8 sm:px-6 sm:pt-10 md:px-8 lg:px-10 lg:pb-14">
       {/* Header */}
 
       <div className="mx-auto mb-16 w-full max-w-7xl py-4 sm:mb-20 lg:mb-24">

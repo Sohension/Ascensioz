@@ -1,10 +1,19 @@
 import type { Metadata } from "next";
-import { Geist, Geist_Mono } from "next/font/google";
+import { Geist_Mono, Rajdhani, Montserrat } from "next/font/google";
+import Script from "next/script";
 import "./globals.css";
+import NavWrapper from "./NavWrapper";
 
-const geistSans = Geist({
-  variable: "--font-sans", // Mapped directly to match Shadcn / Tailwind v4 font variable
+const rajdhani = Rajdhani({
+  variable: "--font-sans",
   subsets: ["latin"],
+  weight: ["400", "500", "600", "700"],
+});
+
+const montserrat = Montserrat({
+  variable: "--font-heading",
+  subsets: ["latin"],
+  weight: ["400", "500", "600", "700", "800"],
 });
 
 const geistMono = Geist_Mono({
@@ -23,11 +32,21 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en" className="light" style={{ colorScheme: "light" }}>
+    <html lang="en" suppressHydrationWarning>
+      <head>
+        <Script id="theme-preference" strategy="beforeInteractive">
+          {`(() => {
+            const savedTheme = localStorage.getItem("theme");
+            const theme = savedTheme ?? (window.matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light");
+            document.documentElement.classList.toggle("dark", theme === "dark");
+            document.documentElement.style.colorScheme = theme;
+          })();`}
+        </Script>
+      </head>
       <body
-        className={`${geistSans.variable} ${geistMono.variable} antialiased bg-background text-foreground`}
+        className={`${rajdhani.variable} ${montserrat.variable} ${geistMono.variable} antialiased bg-background text-foreground`}
       >
-        {children}
+        <NavWrapper>{children}</NavWrapper>
       </body>
     </html>
   );

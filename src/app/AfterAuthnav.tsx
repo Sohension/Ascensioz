@@ -7,6 +7,7 @@ import { Rajdhani } from "next/font/google";
 import { createClient } from "@/lib/client";
 import { useRouter } from "next/navigation";
 import type { User } from "@supabase/supabase-js";
+import { AnimatedThemeToggler } from "@/components/ui/animated-theme-toggler";
 
 const rajdhani = Rajdhani({
   subsets: ["latin"],
@@ -147,7 +148,7 @@ export default function Navbar() {
 
   return (
     <nav
-      className={`w-full ${rajdhani.className} z-50 relative bg-white border-b border-gray-100`}
+      className={`w-full ${rajdhani.className} z-50 relative bg-white/70 dark:bg-black/70 backdrop-blur-3xl border-b border-white/20 dark:border-white/10 shadow-[0_8px_32px_0_rgba(0,0,0,0.1)]`}
     >
       <div className="max-w-7xl mx-auto px-4">
         <div className="flex justify-between items-center h-16">
@@ -201,12 +202,12 @@ export default function Navbar() {
                           : "opacity-0 -translate-y-2 invisible"
                       }`}
                     >
-                      <div className="rounded-xl shadow-lg bg-white border border-gray-100 flex flex-col p-2">
+                      <div className="rounded-xl shadow-xl bg-white/80 dark:bg-zinc-900/90 backdrop-blur-3xl border border-white/20 dark:border-white/10 flex flex-col p-2">
                         {link.children?.map((child) => (
                           <Link
                             key={child.name}
                             href={child.href}
-                            className="px-3 py-2 rounded-md transition-colors duration-200 hover:bg-gray-100"
+                            className="px-3 py-2 rounded-md transition-colors duration-200 hover:bg-black/5 dark:hover:bg-white/10"
                           >
                             {child.name}
                           </Link>
@@ -221,6 +222,10 @@ export default function Navbar() {
 
           {/* Right Section */}
           <div className="flex items-center gap-4">
+            <AnimatedThemeToggler
+              className="inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-full border border-black/10 dark:border-white/20 bg-white/50 dark:bg-white/10 transition-colors hover:bg-black/5 dark:hover:bg-white/15 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+              aria-label="Switch between light and dark theme"
+            />
             {/* Stats */}
             {stats && (
               <div className="flex items-center gap-3 font-semibold">
@@ -263,7 +268,7 @@ export default function Navbar() {
 
               {/* Profile Dropdown containing /profile and Logout */}
               <div
-                className={`absolute right-0 top-full mt-1 w-44 rounded-xl shadow-xl bg-white border border-gray-100 transition-all duration-200 ease-in-out z-50 ${
+                className={`absolute right-0 top-full mt-1 w-44 rounded-xl shadow-xl bg-white/80 dark:bg-zinc-900/90 backdrop-blur-3xl border border-white/20 dark:border-white/10 transition-all duration-200 ease-in-out z-50 ${
                   isProfileOpen
                     ? "opacity-100 translate-y-0 visible"
                     : "opacity-0 -translate-y-2 invisible"
@@ -280,7 +285,7 @@ export default function Navbar() {
                       <Link
                         href="/profile"
                         onClick={() => setIsProfileOpen(false)}
-                        className="px-3 py-2 rounded-lg transition-colors duration-200 hover:bg-gray-100 text-gray-700 hover:text-black"
+                        className="px-3 py-2 rounded-lg transition-colors duration-200 hover:bg-black/5 dark:hover:bg-white/10 text-gray-700 dark:text-gray-200 hover:text-black dark:hover:text-white"
                       >
                         Profile
                       </Link>
@@ -297,7 +302,7 @@ export default function Navbar() {
                     <Link
                       href="/auth/login"
                       onClick={() => setIsProfileOpen(false)}
-                      className="px-3 py-2 rounded-lg transition-colors duration-200 hover:bg-gray-100 text-gray-700"
+                      className="px-3 py-2 rounded-lg transition-colors duration-200 hover:bg-black/5 dark:hover:bg-white/10 text-gray-700 dark:text-gray-200"
                     >
                       Login / Sign Up
                     </Link>
@@ -320,7 +325,7 @@ export default function Navbar() {
 
       {/* Mobile Accordion Drawer */}
       {isOpen && (
-        <div className="md:hidden border-t border-gray-100 bg-white px-4 pt-2 pb-6 space-y-2">
+        <div className="md:hidden border-t border-white/20 dark:border-white/10 bg-white/80 dark:bg-zinc-950/90 backdrop-blur-3xl px-4 pt-2 pb-6 space-y-2">
           {navLinks.map((link) => {
             const hasChildren = Boolean(link.children);
             const isExpanded = expandedMobileMenu === link.name;
@@ -328,7 +333,7 @@ export default function Navbar() {
             return (
               <div
                 key={link.name}
-                className="border-b border-gray-50 last:border-none pb-2 pt-1"
+                className="border-b border-gray-100/50 last:border-none pb-2 pt-1"
               >
                 {hasChildren ? (
                   <div>
@@ -392,7 +397,7 @@ export default function Navbar() {
       {toastMounted && (
         <div className="fixed bottom-6 left-1/2 -translate-x-1/2 z-50 pointer-events-none">
           <div
-            className={`bg-white/90 text-black px-5 py-2 rounded-xl shadow-xl text-sm transition-all duration-300 ease-in-out ${
+            className={`bg-white/80 dark:bg-zinc-900/90 backdrop-blur-2xl border border-white/30 dark:border-white/10 text-black dark:text-white px-5 py-2 rounded-xl shadow-xl text-sm transition-all duration-300 ease-in-out ${
               toastVisible
                 ? "opacity-100 translate-y-0 scale-100"
                 : "opacity-0 translate-y-6 scale-95"

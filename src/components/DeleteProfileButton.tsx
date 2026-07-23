@@ -1,6 +1,17 @@
 "use client";
 
 import { useState } from "react";
+import { Rajdhani, Montserrat } from "next/font/google";
+
+const rajdhani = Rajdhani({
+  subsets: ["latin"],
+  weight: ["400", "500", "600", "700"],
+});
+
+const montserrat = Montserrat({
+  subsets: ["latin"],
+  weight: ["400", "500", "600", "700", "800"],
+});
 
 export default function DeleteProfileButton() {
   const [open, setOpen] = useState(false);
@@ -22,16 +33,16 @@ export default function DeleteProfileButton() {
       {/* DELETE BUTTON */}
       <button
         onClick={() => setOpen(true)}
-        className="bg-red-500 hover:bg-red-600 text-white px-4 py-2 rounded"
+        className={`${rajdhani.className} bg-red-500 hover:bg-red-600 text-white px-4 py-2 rounded`}
       >
         Delete Profile
       </button>
 
       {/* POPUP MODAL */}
       {open && (
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center">
+        <div className={`${rajdhani.className} fixed inset-0 bg-black/50 flex items-center justify-center`}>
           <div className="bg-white p-6 rounded-xl w-80">
-            <h2 className="text-xl font-bold text-black">Delete Profile?</h2>
+            <h2 className={`${montserrat.className} text-xl font-bold text-black`}>Delete Profile?</h2>
 
             <p className="text-gray-600 mt-2">This action cannot be undone.</p>
 

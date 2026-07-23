@@ -3,6 +3,7 @@
 import { useState } from "react";
 import Link from "next/link";
 import { Rajdhani } from "next/font/google";
+import { AnimatedThemeToggler } from "@/components/ui/animated-theme-toggler";
 
 // ✅ font at module scope
 const rajdhani = Rajdhani({
@@ -44,14 +45,25 @@ export default function Navbar() {
             ))}
           </div>
 
+          <AnimatedThemeToggler
+            className="hidden md:inline-flex h-9 w-9 items-center justify-center rounded-full border border-border bg-background transition-colors hover:bg-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+            aria-label="Switch between light and dark theme"
+          />
+
           {/* Mobile Button */}
+          <div className="flex items-center gap-2 md:hidden">
+            <AnimatedThemeToggler
+              className="inline-flex h-9 w-9 items-center justify-center rounded-full border border-border bg-background transition-colors hover:bg-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+              aria-label="Switch between light and dark theme"
+            />
           <button
-            className="md:hidden text-xl"
+            className="text-xl"
             onClick={() => setIsOpen(!isOpen)}
             aria-label="Toggle Menu"
           >
             {isOpen ? "✕" : "☰"}
           </button>
+          </div>
         </div>
       </div>
 

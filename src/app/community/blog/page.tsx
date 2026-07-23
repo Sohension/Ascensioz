@@ -16,14 +16,14 @@ import type { ReactNode } from "react";
 
 function Highlight({ children }: { children: ReactNode }) {
   return (
-    <span className="bg-yellow-200 text-black px-1 rounded">{children}</span>
+    <span className="bg-yellow-200 dark:bg-yellow-800 text-black dark:text-yellow-100 px-1 rounded">{children}</span>
   );
 }
 
 export default function AscensionBlog() {
   return (
     <main
-      className={`${montserrat.variable} ${rajdhani.variable} bg-[#e5e7eb] text-black min-h-screen px-6 py-16`}
+      className={`${montserrat.variable} ${rajdhani.variable} bg-[#e5e7eb] dark:bg-gray-900 text-black dark:text-white min-h-screen px-6 py-16`}
     >
       <div className="max-w-4xl mx-auto space-y-12">
         {/* Title */}

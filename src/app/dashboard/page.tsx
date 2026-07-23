@@ -1,6 +1,5 @@
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/server";
-import AfterAuthnav from "@/app/AfterAuthnav";
 import Link from "next/link";
 
 import CreateProfileModal from "@/components/profile-components/create-profile-modal";
@@ -38,8 +37,6 @@ export default async function ProtectedPageHome() {
 
   return (
     <>
-      <AfterAuthnav />
-
       {!hasProfile && <CreateProfileModal open={true} />}
 
       <div className="relative min-h-screen w-full overflow-hidden">
@@ -47,7 +44,8 @@ export default async function ProtectedPageHome() {
 
         <div className="relative z-10 flex min-h-screen items-center">
           <div className="w-full max-w-7xl mx-auto px-6 sm:px-10 md:px-16 lg:px-24">
-            <div className="max-w-4xl">
+            <div className="max-w-4xl border-l-4 border-yellow-400 pl-5 sm:pl-7">
+              <p className={`${rajdhani.className} mb-3 text-sm font-bold text-yellow-300`}>YOUR ASCENSION</p>
               <h1
                 className={`${montserrat.className} text-4xl sm:text-5xl md:text-6xl lg:text-7xl xl:text-8xl text-white font-semibold leading-tight`}
               >
@@ -62,7 +60,7 @@ export default async function ProtectedPageHome() {
 
               <Link href="/pyron">
                 <button
-                  className={`${rajdhani.className} mt-8 sm:mt-10 px-8 py-4 text-lg sm:text-xl md:text-2xl font-semibold bg-white text-black rounded-xl shadow-xl hover:scale-105 transition-transform duration-200 cursor-pointer`}
+                  className={`${rajdhani.className} mt-8 bg-yellow-400 px-8 py-4 text-lg font-bold text-slate-950 shadow-xl shadow-black/30 transition-transform duration-200 hover:scale-105 hover:bg-yellow-300 sm:mt-10 sm:text-xl md:text-2xl`}
                 >
                   ▶ Play Now
                 </button>

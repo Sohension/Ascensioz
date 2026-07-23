@@ -1,6 +1,12 @@
 "use client";
 
 import { useState } from "react";
+import { Rajdhani } from "next/font/google";
+
+const rajdhani = Rajdhani({
+  subsets: ["latin"],
+  weight: ["400", "500", "600", "700"],
+});
 
 export default function SubmitButton({ challengeId }: { challengeId: string }) {
   const [code, setCode] = useState("");
@@ -64,10 +70,10 @@ export default function SubmitButton({ challengeId }: { challengeId: string }) {
   };
 
   return (
-    <div>
+    <div className={`${rajdhani.className} space-y-4`}>
       <textarea
         value={code}
-        className="w-full min-h-75 border rounded p-3 font-mono"
+        className="w-full min-h-[300px] rounded-lg border border-slate-600 bg-slate-900 text-green-400 p-4 font-mono text-base leading-relaxed resize-y focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
         placeholder="// Write your solution here..."
         onChange={(e) => setCode(e.target.value)}
       />
@@ -75,7 +81,7 @@ export default function SubmitButton({ challengeId }: { challengeId: string }) {
       <button
         onClick={submit}
         disabled={loading}
-        className="mt-4 px-4 py-2 border rounded hover:bg-gray-100 disabled:opacity-60"
+        className="px-6 py-3 rounded-lg bg-blue-600 hover:bg-blue-700 text-white font-semibold transition-all duration-200 disabled:opacity-60 disabled:cursor-not-allowed"
       >
         {loading ? "Submitting..." : buttonText}
       </button>

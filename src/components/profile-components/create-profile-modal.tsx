@@ -1,6 +1,17 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import { Montserrat, Rajdhani } from "next/font/google";
+
+const montserrat = Montserrat({
+  subsets: ["latin"],
+  weight: ["400", "500", "600", "700", "800"],
+});
+
+const rajdhani = Rajdhani({
+  subsets: ["latin"],
+  weight: ["400", "500", "600", "700"],
+});
 
 type Props = {
   open: boolean;
@@ -54,9 +65,9 @@ export default function CreateProfileModal({ open }: Props) {
   if (!visible) return null;
 
   return (
-    <div className="fixed inset-0 z-50 bg-black/50 flex items-center justify-center">
+    <div className={`${rajdhani.className} fixed inset-0 z-50 bg-black/50 flex items-center justify-center`}>
       <div className="bg-white p-6 rounded-xl w-96 shadow-lg">
-        <h2 className="text-xl font-bold mb-4">Create your profile</h2>
+        <h2 className={`${montserrat.className} text-xl font-bold mb-4`}>Create your profile</h2>
 
         <input
           placeholder="Username"

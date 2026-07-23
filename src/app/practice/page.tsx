@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { ArrowRight, Code2, Target, Trophy } from "lucide-react";
 import { getCourses } from "@/lib/courses";
 import { Montserrat, Rajdhani } from "next/font/google";
 
@@ -26,31 +27,50 @@ export default async function PracticePage() {
   const courses = await getCourses();
 
   return (
-    <div className="min-h-screen bg-linear-to-br from-slate-100 via-slate-200 to-slate-300 px-4 pb-10 pt-32 sm:px-6 sm:pt-36 md:px-8 md:pt-40 lg:px-10 lg:pt-44 lg:pb-14">
-      <BackButton href="/dashboard"/>
-      <div className="mx-auto py-4 mb-16 w-full max-w-7xl px-1 sm:mb-20 lg:mb-24">
-        <h1
-          className={`${montserrat.className} text-4xl font-extrabold tracking-tight sm:text-5xl md:text-6xl lg:text-7xl`}
-        >
-          Practice <span className="text-blue-600">Arena</span>
-        </h1>
+    <main className="min-h-screen bg-slate-50 dark:bg-gray-900 px-4 pb-12 pt-8 sm:px-6 sm:pt-10 lg:px-8 lg:pb-16">
+      <div className="mx-auto w-full max-w-6xl">
+        <div className="mb-8 sm:mb-10">
+          <BackButton href="/dashboard" label="Dashboard" />
+        </div>
 
-        <p
-          className={`${rajdhani.className} mt-4 max-w-2xl text-base leading-7 text-slate-700 sm:text-lg md:text-xl`}
-        >
-          Strengthen your programming skills through interactive coding
-          challenges. Complete missions, earn XP, and continue your Ascension.
-        </p>
-      </div>
+        <section className="border-b border-slate-200 pb-8 sm:flex sm:items-end sm:justify-between sm:gap-10 sm:pb-10">
+          <div className="max-w-2xl">
+            <p className={`${rajdhani.className} mb-2 text-sm font-bold text-blue-700`}>
+              SKILL BUILDER
+            </p>
+            <h1 className={`${montserrat.className} text-4xl font-extrabold text-slate-950 dark:text-white sm:text-5xl`}>
+              Practice <span className="text-blue-600">Arena</span>
+            </h1>
+            <p className={`${rajdhani.className} mt-3 max-w-xl text-lg leading-7 text-slate-600 dark:text-slate-300 sm:text-xl`}>
+              Pick a path, build momentum, and earn XP through focused coding challenges.
+            </p>
+          </div>
 
-      {/* Cards */}
+          <div className="mt-6 flex shrink-0 items-center gap-3 border-l-4 border-amber-400 bg-amber-50 dark:bg-amber-900 dark:border-amber-600 px-4 py-3 sm:mt-0">
+            <Trophy className="h-5 w-5 text-amber-600 dark:text-amber-400" aria-hidden="true" />
+            <div>
+              <p className={`${rajdhani.className} text-sm font-bold text-slate-900 dark:text-white`}>Learn by doing</p>
+              <p className={`${rajdhani.className} text-sm text-slate-600 dark:text-slate-300`}>Every challenge moves you forward.</p>
+            </div>
+          </div>
+        </section>
 
-      <div className="mx-auto grid max-w-7xl grid-cols-1 gap-6 sm:grid-cols-2 lg:gap-8 xl:grid-cols-3">
+        <section className="pt-8 sm:pt-10" aria-labelledby="course-paths">
+          <div className="mb-5 flex items-center justify-between">
+            <h2 id="course-paths" className={`${montserrat.className} text-xl font-bold text-slate-950 dark:text-white sm:text-2xl`}>
+              Choose your path
+            </h2>
+            <span className={`${rajdhani.className} text-sm font-semibold text-slate-500 dark:text-slate-400`}>
+              {courses.length} available
+            </span>
+          </div>
+
+          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:gap-5 xl:grid-cols-3">
         {courses.map((course) => (
           <Link
             key={course.id}
             href={`/practice/${course.name.toLowerCase()}`}
-            className="group h-full"
+            className="group block h-full focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-600 focus-visible:ring-offset-2"
           >
             <Card
               className="
@@ -58,39 +78,41 @@ export default async function PracticePage() {
                 h-full
                 flex-col
                 cursor-pointer
-                border
-                border-slate-300
-                bg-linear-to-br
-                from-white
-                via-slate-50
-                to-slate-100
-                shadow-md
+                rounded-lg
+                border-slate-200
+                bg-white
+                dark:bg-gray-800
+                dark:border-gray-700
+                shadow-sm
                 transition-all
                 duration-300
-                hover:-translate-y-2
-                hover:border-blue-400
-                hover:shadow-2xl
+                hover:-translate-y-1
+                hover:border-blue-300
+                hover:shadow-lg
               "
             >
-              {/* Header */}
-
-              <CardHeader>
+              <CardHeader className="pb-4">
                 <div className="flex items-start justify-between gap-4">
-                  <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-blue-100 text-2xl shadow-sm sm:h-16 sm:w-16 sm:text-3xl">
-                    🐍
+                  <div className="flex h-11 w-11 items-center justify-center rounded-lg bg-blue-50 dark:bg-blue-900 text-blue-700 dark:text-blue-300">
+                    <Code2 className="h-5 w-5" aria-hidden="true" />
                   </div>
 
                   <span
                     className={`${rajdhani.className}
-                      rounded-full
-                      bg-blue-100
+                      rounded-md
+                      border
+                      border-blue-100
+                      dark:border-blue-800
+                      bg-blue-50
+                      dark:bg-blue-900
                       px-3
                       py-1
-                      text-[10px]
+                      text-xs
                       font-bold
                       tracking-wide
                       text-blue-700
-                      sm:text-xs`}
+                      dark:text-blue-300
+                    `}
                   >
                     BEGINNER
                   </span>
@@ -98,14 +120,15 @@ export default async function PracticePage() {
 
                 <CardTitle
                   className={`${montserrat.className}
-                    mt-4
-                    text-2xl
+                    mt-5
+                    text-xl
                     font-extrabold
-                    text-black
+                    text-slate-950
+                    dark:text-white
                     transition-colors
                     duration-300
                     group-hover:text-blue-600
-                    sm:text-3xl`}
+                    sm:text-2xl`}
                 >
                   {course.name}
                 </CardTitle>
@@ -114,37 +137,36 @@ export default async function PracticePage() {
                   className={`${rajdhani.className}
                     mt-2
                     text-base
-                    leading-7
+                    leading-6
                     text-slate-600
-                    sm:text-lg`}
+                    dark:text-slate-300
+                  `}
                 >
                   {course.description}
                 </CardDescription>
               </CardHeader>
 
-              {/* Content */}
-
-              <CardContent className="flex-1">
-                <div className="grid grid-cols-2 gap-3 sm:gap-4">
-                  <div className="rounded-xl border border-slate-200 bg-white p-3 shadow-sm sm:p-4">
-                    <div className="text-xl font-bold text-blue-600 sm:text-2xl">
+              <CardContent className="flex-1 pt-1">
+                <div className="grid grid-cols-2 divide-x divide-slate-200 dark:divide-gray-700 border-y border-slate-100 dark:border-gray-700 bg-slate-50 dark:bg-gray-900">
+                  <div className="p-3.5">
+                    <div className="text-xl font-bold text-slate-950 dark:text-white">
                       32
                     </div>
 
                     <div
-                      className={`${rajdhani.className} mt-1 text-xs text-slate-600 sm:text-sm`}
+                      className={`${rajdhani.className} mt-1 text-sm text-slate-500 dark:text-slate-400`}
                     >
                       Challenges
                     </div>
                   </div>
 
-                  <div className="rounded-xl border border-slate-200 bg-white p-3 shadow-sm sm:p-4">
-                    <div className="text-xl font-bold text-blue-600 sm:text-2xl">
+                  <div className="p-3.5">
+                    <div className="text-xl font-bold text-slate-950 dark:text-white">
                       +250
                     </div>
 
                     <div
-                      className={`${rajdhani.className} mt-1 text-xs text-slate-600 sm:text-sm`}
+                      className={`${rajdhani.className} mt-1 text-sm text-slate-500 dark:text-slate-400`}
                     >
                       XP Reward
                     </div>
@@ -152,43 +174,22 @@ export default async function PracticePage() {
                 </div>
               </CardContent>
 
-              {/* Footer */}
-
-              <CardFooter className="flex items-center justify-between pt-4">
+              <CardFooter className="flex items-center justify-between pt-5">
                 <span
-                  className={`${rajdhani.className} text-lg font-semibold text-black sm:text-xl`}
+                  className={`${rajdhani.className} flex items-center gap-2 text-lg font-bold text-slate-900 dark:text-white`}
                 >
-                  Enter Arena
+                  <Target className="h-4 w-4 text-blue-600" aria-hidden="true" />
+                  Start practicing
                 </span>
 
-                <div
-                  className="
-                    flex
-                    h-10
-                    w-10
-                    items-center
-                    justify-center
-                    rounded-full
-                    bg-blue-600
-                    text-base
-                    font-bold
-                    text-white
-                    transition-all
-                    duration-300
-                    group-hover:translate-x-1
-                    group-hover:scale-110
-                    sm:h-11
-                    sm:w-11
-                    sm:text-lg
-                  "
-                >
-                  →
-                </div>
+                <ArrowRight className="h-5 w-5 text-slate-400 transition-transform duration-300 group-hover:translate-x-1 group-hover:text-blue-600" aria-hidden="true" />
               </CardFooter>
             </Card>
           </Link>
         ))}
+          </div>
+        </section>
       </div>
-    </div>
+    </main>
   );
 }

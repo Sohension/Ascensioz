@@ -58,7 +58,7 @@ export default async function ChallengePage({ params }: Props) {
   }
 
   return (
-    <div className="min-h-screen bg-linear-to-br from-slate-100 via-slate-200 to-slate-300 px-4 pb-10 pt-32 sm:px-6 sm:pt-36 md:px-8 md:pt-40 lg:px-10 lg:pt-44 lg:pb-14">
+    <div className="min-h-screen bg-linear-to-br from-slate-100 via-slate-200 to-slate-300 dark:bg-gray-900 px-4 pb-10 pt-8 sm:px-6 sm:pt-10 md:px-8 lg:px-10 lg:pb-14">
       {/* Header */}
       <BackButton href="/practice/python"/>
 
