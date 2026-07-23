@@ -40,6 +40,10 @@ export default function SubmitButton({ challengeId }: { challengeId: string }) {
 
       const data = await res.json();
 
+      if (!res.ok) {
+        throw new Error(data.error ?? data.details ?? "Unable to validate solution");
+      }
+
       if (data.correct) {
         const rewardResponse = await fetch("/api/submit", {
           method: "POST",
@@ -49,7 +53,9 @@ export default function SubmitButton({ challengeId }: { challengeId: string }) {
         const reward = await rewardResponse.json();
 
         if (!rewardResponse.ok) {
-          throw new Error(reward.error ?? "Unable to save reward");
+          throw new Error(
+            reward.error ?? reward.details?.message ?? "Unable to save reward",
+          );
         }
 
         setButtonText(
@@ -71,7 +77,9 @@ export default function SubmitButton({ challengeId }: { challengeId: string }) {
     } catch (err) {
       console.error(err);
 
-      setButtonText("⚠️ Error");
+      setButtonText(
+        err instanceof Error ? `⚠️ ${err.message}` : "⚠️ Submission error",
+      );
 
       setTimeout(() => {
         setButtonText("Submit Solution");
