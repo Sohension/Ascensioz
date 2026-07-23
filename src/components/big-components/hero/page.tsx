@@ -120,15 +120,20 @@ export default function Hero() {
         <section className="relative min-h-[90vh] flex items-center justify-start pt-28 sm:pt-36 overflow-hidden">
           {/* Background Image with Subtle Edge Blur/Gradient Overlay */}
           <div className="absolute inset-0 z-0">
+            {/* Solid Gray-900 Background for Dark Mode */}
+            <div className={`absolute inset-0 ${isDark ? "bg-slate-900" : ""}`} />
+            
+            {/* Image Background (with lower opacity in dark mode) */}
             <img
               src="/citybg.gif" // You can change this to /rainbg.gif if you prefer!
               alt="Hero Background"
-              className="w-full h-full object-cover"
+              className={`w-full h-full object-cover ${isDark ? "opacity-20" : ""}`}
             />
+            
             {/* Subtle Edge Gradient Overlay for Blur/Depth Effect */}
             <div className={`absolute inset-0 ${
               isDark 
-                ? "bg-[radial-gradient(circle_at_center,transparent_0%,rgba(15,23,42,0.7)_60%,rgba(15,23,42,0.95)_100%)]" 
+                ? "bg-[radial-gradient(circle_at_center,transparent_0%,rgba(30,41,59,0.7)_60%,rgba(30,41,59,0.95)_100%)]" 
                 : "bg-[radial-gradient(circle_at_center,transparent_0%,rgba(255,255,255,0.5)_60%,rgba(255,255,255,0.9)_100%)]"
             }`} />
           </div>
