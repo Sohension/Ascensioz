@@ -1,17 +1,24 @@
 import { NextResponse } from "next/server";
-
-function normalize(code: string) {
-  return code.replace(/\s+/g, "").replace(/['"]/g, '"').trim().toLowerCase();
-}
+import {
+  getPythonPracticeQuestion,
+  validatePythonPracticeSolution,
+} from "@/lib/python-practice";
 
 export async function POST(req: Request) {
-  const { code } = await req.json();
+  const { challengeId, code } = await req.json();
+  const question = getPythonPracticeQuestion(challengeId);
 
-  const expected = `print("hello world")`;
+  if (!question || typeof code !== "string") {
+    return NextResponse.json(
+      { error: "Unknown challenge or invalid code" },
+      { status: 400 },
+    );
+  }
 
-  const correct = normalize(code) === normalize(expected);
+  const correct = validatePythonPracticeSolution(question.id, code);
 
   return NextResponse.json({
     correct,
+    expectedOutput: question.expectedOutput,
   });
 }

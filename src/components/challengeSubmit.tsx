@@ -41,10 +41,22 @@ export default function SubmitButton({ challengeId }: { challengeId: string }) {
       const data = await res.json();
 
       if (data.correct) {
-        setButtonText("✅ Correct!");
+        const rewardResponse = await fetch("/api/submit", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ challengeId, code }),
+        });
+        const reward = await rewardResponse.json();
 
-        // NEXT:
-        // Call your reward API here
+        if (!rewardResponse.ok) {
+          throw new Error(reward.error ?? "Unable to save reward");
+        }
+
+        setButtonText(
+          reward.alreadyCompleted
+            ? "✅ Already completed"
+            : "✅ Correct! Rewards claimed",
+        );
 
         setTimeout(() => {
           setButtonText("Submit Solution");
@@ -73,7 +85,7 @@ export default function SubmitButton({ challengeId }: { challengeId: string }) {
     <div className={`${rajdhani.className} space-y-4`}>
       <textarea
         value={code}
-        className="w-full min-h-[300px] rounded-lg border border-slate-600 bg-slate-900 text-green-400 p-4 font-mono text-base leading-relaxed resize-y focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+        className="w-full min-h-75 rounded-lg border border-slate-600 bg-slate-900 text-green-400 p-4 font-mono text-base leading-relaxed resize-y focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
         placeholder="// Write your solution here..."
         onChange={(e) => setCode(e.target.value)}
       />

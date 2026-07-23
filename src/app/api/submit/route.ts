@@ -1,5 +1,9 @@
 import { createClient } from "@/lib/server";
 import { NextResponse } from "next/server";
+import {
+  getPythonPracticeQuestion,
+  validatePythonPracticeSolution,
+} from "@/lib/python-practice";
 
 export async function POST(req: Request) {
   
@@ -21,36 +25,53 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: "Missing data" }, { status: 400 });
     }
 
-    // 1. Save submission
-    const { data: submission, error: subError } = await supabase
-      .from("submissions")
-      .insert({
+    const practiceQuestion = getPythonPracticeQuestion(challengeId);
+    if (practiceQuestion && !validatePythonPracticeSolution(challengeId, code)) {
+      return NextResponse.json({ error: "Solution is not correct" }, { status: 400 });
+    }
+
+    // The primary key makes this claim idempotent across retries and concurrent requests.
+    const { data: completion, error: completionError } = await supabase
+      .from("practice_completions")
+      .insert({ user_id: user.id, question_id: challengeId })
+      .select()
+      .maybeSingle();
+
+    if (completionError?.code === "23505") {
+      return NextResponse.json({ success: true, alreadyCompleted: true });
+    }
+    if (completionError) {
+      return NextResponse.json({ error: completionError.message }, { status: 500 });
+    }
+
+    let rewardXp = practiceQuestion?.reward_xp;
+    let rewardCoins = practiceQuestion?.reward_coins;
+
+    if (!practiceQuestion) {
+      const { data: challenge } = await supabase
+        .from("challenges")
+        .select("reward_xp, reward_coins")
+        .eq("id", challengeId)
+        .single();
+      rewardXp = challenge?.reward_xp;
+      rewardCoins = challenge?.reward_coins;
+
+      const { error: submissionError } = await supabase.from("submissions").insert({
         user_id: user.id,
         challenge_id: challengeId,
         code,
-      })
-      .select()
-      .single();
-
-    if (subError) {
-      return NextResponse.json(subError, { status: 500 });
+      });
+      if (submissionError) {
+        return NextResponse.json({ error: submissionError.message }, { status: 500 });
+      }
     }
 
-    // 2. Get reward info from challenge
-    const { data: challenge } = await supabase
-      .from("challenges")
-      .select("reward_xp, reward_coins")
-      .eq("id", challengeId)
-      .single();
-
-    // 3. Update stats (simple version)
-    // 3. Update stats
-    const { data: rpcData, error: rpcError } = await supabase.rpc(
+    const { error: rpcError } = await supabase.rpc(
       "add_user_rewards",
       {
         p_user_id: user.id,
-        p_xp_gain: challenge?.reward_xp ?? 10,
-        p_coin_gain: challenge?.reward_coins ?? 5,
+        p_xp_gain: rewardXp ?? 10,
+        p_coin_gain: rewardCoins ?? 5,
       },
     );
 
@@ -58,6 +79,12 @@ export async function POST(req: Request) {
     
 
     if (rpcError) {
+      await supabase
+        .from("practice_completions")
+        .delete()
+        .eq("user_id", user.id)
+        .eq("question_id", challengeId);
+
       return NextResponse.json(
         {
           error: "RPC failed",
@@ -71,7 +98,9 @@ export async function POST(req: Request) {
 
     return NextResponse.json({
       success: true,
-      submission,
+      completion,
+      xp: rewardXp ?? 10,
+      coins: rewardCoins ?? 5,
     });
   } catch (err) {
     

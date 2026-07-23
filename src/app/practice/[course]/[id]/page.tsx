@@ -183,17 +183,6 @@ export default async function ChallengePage({ params }: Props) {
               </div>
             </div>
 
-            <div className="rounded-2xl border border-slate-200 dark:border-gray-700 bg-white dark:bg-gray-900 p-5 shadow-sm">
-              <div className="text-3xl font-bold text-blue-600 dark:text-blue-400">
-                🧠 {challenge.logic_weight}
-              </div>
-
-              <div
-                className={`${rajdhani.className} mt-2 text-sm text-slate-600 dark:text-slate-300`}
-              >
-                Logic Weight
-              </div>
-            </div>
           </CardContent>
         </Card>
       </div>

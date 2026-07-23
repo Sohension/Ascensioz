@@ -1,4 +1,5 @@
 import { createClient } from "@/lib/client";
+import { getPythonPracticeQuestion } from "@/lib/python-practice";
 
 export async function getChallenges(courseId: string) {
   const supabase = await createClient();
@@ -15,6 +16,9 @@ export async function getChallenges(courseId: string) {
 }
 
 export async function getChallenge(id: string) {
+  const practiceQuestion = getPythonPracticeQuestion(id);
+  if (practiceQuestion) return practiceQuestion;
+
   const supabase = await createClient();
 
   const { data, error } = await supabase

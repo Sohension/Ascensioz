@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { getCourses } from "@/lib/courses";
 import { getChallenges } from "@/lib/challenges";
+import { pythonPracticeQuestions } from "@/lib/python-practice";
 import { Montserrat, Rajdhani } from "next/font/google";
 
 import {
@@ -77,7 +78,10 @@ export default async function CoursePage({
     );
   }
 
-  const challenges = await getChallenges(course.id);
+  const challenges =
+    course.name.toLowerCase() === "python"
+      ? pythonPracticeQuestions
+      : await getChallenges(course.id);
 
   return (
     <div className="min-h-screen bg-linear-to-br from-slate-100 via-slate-200 to-slate-300 dark:from-gray-900 dark:via-gray-900 dark:to-gray-900 px-4 pb-10 pt-8 sm:px-6 sm:pt-10 md:px-8 lg:px-10 lg:pb-14">
@@ -121,7 +125,7 @@ export default async function CoursePage({
 
           <div className="rounded-2xl border border-slate-200 dark:border-gray-700 bg-white dark:bg-gray-800 p-5 shadow-md">
             <div className="text-3xl font-bold text-blue-600 dark:text-blue-400">
-              +{challenges.length * 10}
+              +{challenges.reduce((total, challenge) => total + challenge.reward_xp, 0)}
             </div>
 
             <div
@@ -208,7 +212,7 @@ export default async function CoursePage({
               <CardContent className="flex-1">
                 <div className="grid grid-cols-2 gap-4">
                   <div className="rounded-xl border border-slate-200 dark:border-gray-700 bg-white dark:bg-gray-900 p-4 shadow-sm">
-                    <div className="text-2xl font-bold text-blue-600 dark:text-blue-400">+10</div>
+                    <div className="text-2xl font-bold text-blue-600 dark:text-blue-400">+{ch.reward_xp}</div>
 
                     <div
                       className={`${rajdhani.className} mt-1 text-sm text-slate-600 dark:text-slate-300`}
@@ -219,13 +223,13 @@ export default async function CoursePage({
 
                   <div className="rounded-xl border border-slate-200 dark:border-gray-700 bg-white dark:bg-gray-900 p-4 shadow-sm">
                     <div className="text-2xl font-bold text-blue-600 dark:text-blue-400">
-                      #{index + 1}
+                      🪙 {ch.reward_coins}
                     </div>
 
                     <div
                       className={`${rajdhani.className} mt-1 text-sm text-slate-600 dark:text-slate-300`}
                     >
-                      Mission
+                      Coins
                     </div>
                   </div>
                 </div>
