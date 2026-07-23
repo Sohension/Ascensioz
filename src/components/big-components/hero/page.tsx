@@ -113,23 +113,26 @@ export default function Hero() {
         <AnimatedGridPattern className={`absolute inset-0 ${
           isDark ? "text-slate-700/40" : "text-gray-200/65"
         } opacity-70 pointer-events-none`} />
-        
-        {/* Video Background */}
-        <video
-          autoPlay
-          loop
-          muted
-          playsInline
-          className={`absolute inset-0 w-full h-full object-cover opacity-10 blur-[2px] ${isDark ? "opacity-15" : "opacity-20"}`}
-        >
-          <source src="/videos/hero-bg.mp4" type="video/mp4" />
-          Your browser does not support the video tag.
-        </video>
       </div>
 
       <div className="px-6 md:px-24 xl:px-28 max-w-7xl mx-auto pb-20 relative z-10">
         {/* ================= SECTION 1 — HERO ================= */}
         <section className="relative min-h-[90vh] flex items-center justify-start pt-28 sm:pt-36 overflow-hidden">
+          {/* Background Image with Subtle Edge Blur/Gradient Overlay */}
+          <div className="absolute inset-0 z-0">
+            <img
+              src="/citybg.gif" // You can change this to /rainbg.gif if you prefer!
+              alt="Hero Background"
+              className="w-full h-full object-cover"
+            />
+            {/* Subtle Edge Gradient Overlay for Blur/Depth Effect */}
+            <div className={`absolute inset-0 ${
+              isDark 
+                ? "bg-[radial-gradient(circle_at_center,transparent_0%,rgba(15,23,42,0.7)_60%,rgba(15,23,42,0.95)_100%)]" 
+                : "bg-[radial-gradient(circle_at_center,transparent_0%,rgba(255,255,255,0.5)_60%,rgba(255,255,255,0.9)_100%)]"
+            }`} />
+          </div>
+
           <motion.div
             initial={{ opacity: 0, y: 30 }}
             animate={{ opacity: 1, y: 0 }}
@@ -140,7 +143,7 @@ export default function Hero() {
               initial={{ opacity: 0, y: 20, filter: "blur(10px)" }}
               animate={{ opacity: 1, y: 0, filter: "blur(0px)" }}
               transition={{ duration: 1.2, ease: "easeOut", delay: 0.2 }}
-              className={`${montserrat.className} text-5xl sm:text-6xl md:text-8xl xl:text-[110px] tracking-tight leading-[1.05] ${
+              className={`${montserrat.className} text-5xl sm:text-6xl md:text-8xl xl:text-[110px] tracking-tight leading-[1.05] drop-shadow-lg ${
                 isDark ? "text-white" : "text-slate-950"
               }`}
             >
@@ -153,7 +156,7 @@ export default function Hero() {
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 1, ease: "easeOut", delay: 0.4 }}
               className={`${rajdhani.className} text-xl sm:text-2xl md:text-3xl lg:text-4xl font-medium leading-relaxed max-w-4xl tracking-wide ${
-                isDark ? "text-slate-300" : "text-slate-600"
+                isDark ? "text-slate-200 drop-shadow-md" : "text-slate-700 drop-shadow-sm"
               }`}
             >
               Discover a growing collection of educational games where every
@@ -168,9 +171,9 @@ export default function Hero() {
               transition={{ duration: 1, ease: "easeOut", delay: 0.6 }}
               className={`${rajdhani.className} max-w-3xl rounded-3xl px-6 py-6 ${
                 isDark 
-                  ? "bg-slate-900/80 border border-slate-700/60 shadow-[0_20px_60px_rgba(0,0,0,0.4)]" 
-                  : "bg-white/80 border border-slate-200/80 shadow-[0_20px_60px_rgba(0,0,0,0.1)]"
-              } backdrop-blur-xl transition-all hover:border-yellow-400/60 hover:shadow-[0_30px_80px_rgba(250,204,21,0.15)]`}
+                  ? "bg-slate-950/85 border border-slate-700/70 shadow-[0_25px_70px_rgba(0,0,0,0.5)] backdrop-blur-xl" 
+                  : "bg-white/90 border border-slate-200/90 shadow-[0_20px_60px_rgba(0,0,0,0.15)] backdrop-blur-xl"
+              } transition-all hover:border-yellow-400/80 hover:shadow-[0_35px_90px_rgba(250,204,21,0.2)]`}
             >
               <p className={`text-lg md:text-xl font-bold mb-2 flex items-center gap-2 ${
                 isDark ? "text-white" : "text-slate-950"
@@ -179,7 +182,7 @@ export default function Hero() {
               </p>
 
               <p className={`text-base md:text-lg leading-relaxed ${
-                isDark ? "text-slate-400" : "text-slate-600"
+                isDark ? "text-slate-300" : "text-slate-600"
               }`}>
                 You are one of the first people to experience Ascension. This is
                 a very early prototype, so you may come across a few bugs or
@@ -198,7 +201,7 @@ export default function Hero() {
               <Link href="/auth/login" className="w-full sm:w-auto">
                 <Button
                   variant="default"
-                  className={`${rajdhani.className} w-full sm:w-auto text-xl md:text-lg font-bold px-8 py-6 bg-yellow-400 text-black transition-all duration-300 rounded-2xl tracking-wide hover:bg-yellow-300 hover:scale-[1.03] active:scale-[0.98] cursor-pointer shadow-[0_15px_40px_rgba(250,204,21,0.4)] hover:shadow-[0_25px_60px_rgba(250,204,21,0.55)]`}
+                  className={`${rajdhani.className} w-full sm:w-auto text-xl md:text-lg font-bold px-8 py-6 bg-yellow-400 text-black transition-all duration-300 rounded-2xl tracking-wide hover:bg-yellow-300 hover:scale-[1.03] active:scale-[0.98] cursor-pointer shadow-[0_20px_50px_rgba(250,204,21,0.5)] hover:shadow-[0_30px_70px_rgba(250,204,21,0.7)]`}
                 >
                   🚀 Start Learning
                 </Button>
@@ -209,9 +212,9 @@ export default function Hero() {
                   variant="outline"
                   className={`${rajdhani.className} w-full sm:w-auto text-xl md:text-lg font-semibold px-8 py-6 transition-all duration-300 rounded-2xl tracking-wide hover:scale-[1.03] active:scale-[0.98] cursor-pointer ${
                     isDark 
-                      ? "border-slate-600 bg-slate-900/60 text-slate-200 hover:border-yellow-400 hover:text-yellow-300" 
-                      : "border-slate-300 bg-white/60 text-slate-700 hover:text-slate-950 hover:border-slate-500"
-                  } backdrop-blur-md shadow-lg hover:shadow-xl`}
+                      ? "border-slate-600 bg-slate-950/70 text-slate-100 hover:border-yellow-400 hover:text-yellow-300 shadow-[0_15px_40px_rgba(0,0,0,0.4)]" 
+                      : "border-slate-300 bg-white/80 text-slate-700 hover:text-slate-950 hover:border-slate-500 shadow-[0_15px_40px_rgba(0,0,0,0.15)]"
+                  } backdrop-blur-xl`}
                 >
                   🎮 Play Demo
                 </Button>
