@@ -244,7 +244,7 @@ export default function Navbar() {
             />
 
             {stats && (
-              <div className="hidden xl:flex items-center gap-3 rounded-full border border-cyan-400/30 bg-slate-950/90 px-3 py-2 text-white shadow-[0_10px_30px_rgba(34,211,238,0.12)]">
+              <div className="hidden xl:flex items-center gap-3 bg-slate-950/90 px-3 py-2 text-white shadow-[0_10px_30px_rgba(34,211,238,0.12)]">
                 <div className="min-w-45">
                   <div className="mb-1 flex items-center justify-between gap-3 text-[10px] font-bold uppercase tracking-[0.32em] text-cyan-300">
                     <span>{user?.email?.split("@")[0] || "Player"}</span>
