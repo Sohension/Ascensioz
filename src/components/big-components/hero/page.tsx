@@ -1,5 +1,6 @@
 "use client";
 
+import { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
 import Link from "next/link";
 import { AnimatedGridPattern } from "@/components/ui/animated-grid-pattern";
@@ -86,8 +87,13 @@ export default function Hero() {
     "Problem Solving",
   ];
 
-  const { theme } = useTheme();
-  const isDark = theme === "dark";
+  const [mounted, setMounted] = useState(false);
+  const { resolvedTheme } = useTheme();
+  const isDark = mounted && resolvedTheme === "dark";
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
 
   return (
     <div className={`relative overflow-x-hidden min-h-screen antialiased ${
@@ -268,7 +274,7 @@ export default function Hero() {
         {/* ================= SECTION 3 — LEARN THROUGH ADVENTURES ================= */}
         <FadeInSection>
           <section className={`relative min-h-[75vh] flex flex-col justify-center pt-24 sm:pt-32 border-t ${
-            isDark ? "border-slate-800" : "border-slate-100"
+            isDark ? "border-slate-800 bg-slate-950/70" : "border-slate-100 bg-white/70"
           } mt-20 md:mt-48`}>
             <div className="space-y-10 md:space-y-16 max-w-5xl">
               <h2
@@ -325,7 +331,7 @@ export default function Hero() {
         {/* ================= SECTION 4 — ONE ACCOUNT. ENDLESS LEARNING. ================= */}
         <FadeInSection>
           <section className={`relative min-h-[75vh] flex flex-col justify-center pt-24 sm:pt-32 border-t ${
-            isDark ? "border-slate-800" : "border-slate-100"
+            isDark ? "border-slate-800 bg-slate-950/70" : "border-slate-100 bg-white/70"
           } mt-20 md:mt-48`}>
             <div className="flex flex-col gap-10 md:gap-16 max-w-5xl">
               <div className="space-y-6">
@@ -382,7 +388,7 @@ export default function Hero() {
         {/* ================= SECTION 5 — THE FUTURE ================= */}
         <FadeInSection>
           <section className={`relative min-h-[60vh] flex flex-col justify-center pt-24 sm:pt-32 border-t ${
-            isDark ? "border-slate-800" : "border-slate-100"
+            isDark ? "border-slate-800 bg-slate-950/70" : "border-slate-100 bg-white/70"
           } mt-20 md:mt-48`}>
             <div className="space-y-10 max-w-5xl">
               <h2
@@ -416,7 +422,7 @@ export default function Hero() {
         {/* ================= SECTION 6 — FINAL CTA ================= */}
         <FadeInSection>
           <section className={`relative min-h-[60vh] flex flex-col justify-center pt-24 sm:pt-32 border-t ${
-            isDark ? "border-slate-800" : "border-slate-100"
+            isDark ? "border-slate-800 bg-slate-950/70" : "border-slate-100 bg-white/70"
           } text-center mt-20 md:mt-48`}>
             <div className="max-w-5xl mx-auto space-y-10 md:space-y-14">
               <h2

@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { Geist_Mono, Rajdhani, Montserrat } from "next/font/google";
 import Script from "next/script";
+import { ThemeProvider } from "next-themes";
 import "./globals.css";
 import NavWrapper from "./NavWrapper";
 
@@ -46,7 +47,14 @@ export default function RootLayout({
       <body
         className={`${rajdhani.variable} ${montserrat.variable} ${geistMono.variable} antialiased bg-background text-foreground`}
       >
-        <NavWrapper>{children}</NavWrapper>
+        <ThemeProvider
+          attribute="class"
+          defaultTheme="light"
+          enableSystem={false}
+          disableTransitionOnChange
+        >
+          <NavWrapper>{children}</NavWrapper>
+        </ThemeProvider>
       </body>
     </html>
   );
