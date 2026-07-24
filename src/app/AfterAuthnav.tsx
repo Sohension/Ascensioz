@@ -8,6 +8,8 @@ import { createClient } from "@/lib/client";
 import { useRouter } from "next/navigation";
 import type { User } from "@supabase/supabase-js";
 import { AnimatedThemeToggler } from "@/components/ui/animated-theme-toggler";
+import { Progress } from "@/components/ui/progress";
+import { getRank } from "@/lib/cache/rank";
 
 const rajdhani = Rajdhani({
   subsets: ["latin"],
@@ -17,6 +19,9 @@ const rajdhani = Rajdhani({
 type Stats = {
   coins: number;
   ascenzy: number;
+  xp: number;
+  level?: number;
+  rank?: string;
 };
 
 type NavChild = {
@@ -63,7 +68,7 @@ export default function Navbar() {
 
         const { data: statsData, error } = await supabase
           .from("user_stats")
-          .select("coins, ascenzy")
+          .select("coins, ascenzy, xp, level, rank")
           .eq("user_id", currentUser.id)
           .maybeSingle();
 
@@ -120,6 +125,17 @@ export default function Navbar() {
     user?.identities?.[0]?.identity_data?.avatar_url ||
     user?.identities?.[0]?.identity_data?.picture ||
     null;
+
+  const xp = stats?.xp ?? 0;
+  const level = Math.max(1, stats?.level ?? Math.floor(xp / 250) + 1);
+  const currentLevelXp = Math.max(0, (level - 1) * 250);
+  const nextLevelXp = level * 250;
+  const xpIntoLevel = Math.max(0, xp - currentLevelXp);
+  const levelProgress = Math.min(
+    Math.round((xpIntoLevel / Math.max(1, nextLevelXp - currentLevelXp)) * 100),
+    100,
+  );
+  const currentRank = stats?.rank ?? getRank(xp);
 
   const navLinks: NavItem[] = [
     { name: "Home", href: "/dashboard" },
@@ -226,6 +242,27 @@ export default function Navbar() {
               className="inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-full border border-black/10 dark:border-white/20 bg-white/50 dark:bg-white/10 transition-colors hover:bg-black/5 dark:hover:bg-white/15 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
               aria-label="Switch between light and dark theme"
             />
+
+            {stats && (
+              <div className="hidden xl:flex items-center gap-3 rounded-full border border-cyan-400/30 bg-slate-950/90 px-3 py-2 text-white shadow-[0_10px_30px_rgba(34,211,238,0.12)]">
+                <div className="min-w-45">
+                  <div className="mb-1 flex items-center justify-between gap-3 text-[10px] font-bold uppercase tracking-[0.32em] text-cyan-300">
+                    <span>{user?.email?.split("@")[0] || "Player"}</span>
+                    <span>Lv {level}</span>
+                  </div>
+                  <Progress
+                    value={levelProgress}
+                    max={100}
+                    className="h-2 rounded-full bg-slate-700"
+                  />
+                  <div className="mt-1 flex items-center justify-between text-[10px] text-slate-300">
+                    <span>{currentRank}</span>
+                    <span>{xpIntoLevel}/{nextLevelXp - currentLevelXp} XP</span>
+                  </div>
+                </div>
+              </div>
+            )}
+
             {/* Stats */}
             {stats && (
               <div className="flex items-center gap-3 font-semibold">
