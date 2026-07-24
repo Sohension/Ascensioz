@@ -3,19 +3,14 @@
 import { useEffect, useState } from "react";
 import { createClient } from "@/lib/client";
 import { getRank } from "@/lib/cache/rank";
-import { Montserrat, Rajdhani } from "next/font/google";
+import { Rajdhani } from "next/font/google";
 import DeleteProfileButton from "../DeleteProfileButton";
 
 /* ---------------- LOCAL FONTS ---------------- */
 
-const montserrat = Montserrat({
-  subsets: ["latin"],
-  weight: ["400", "600", "700"],
-});
-
 const rajdhani = Rajdhani({
   subsets: ["latin"],
-  weight: ["300", "400", "500", "600"],
+  weight: ["300", "400", "500", "600", "700"],
 });
 
 /* ---------------- TYPES ---------------- */
@@ -146,38 +141,38 @@ export default function ProfilePage() {
   const rankLabel = stats?.rank ?? getRank(xp);
 
   return (
-    <div className="min-h-[89vh] border-2 border-b bg-white text-black flex items-center justify-center p-6">
-      <div className="max-w-xl w-full">
-        <div className="rounded-[28px] border border-slate-200 bg-slate-950 p-6 shadow-[0_24px_80px_rgba(15,23,42,0.18)]">
+    <div className="min-h-[calc(100vh-5rem)] bg-slate-50 px-4 py-6 text-slate-900 dark:bg-slate-950 dark:text-slate-100 sm:px-6">
+      <div className="mx-auto max-w-xl w-full">
+        <div className="rounded-[28px] border border-slate-200 bg-white p-6 shadow-[0_24px_80px_rgba(15,23,42,0.18)] dark:border-slate-800 dark:bg-slate-950">
           <div className="flex items-center justify-between gap-3">
             <div>
-              <p className="text-[11px] uppercase tracking-[0.4em] text-cyan-300">
+              <p className={`${rajdhani.className} text-[11px] uppercase tracking-[0.4em] text-cyan-600 dark:text-cyan-300`}>
                 Battle Profile
               </p>
-              <h1 className={`${montserrat.className} mt-2 text-4xl font-bold text-white`}>
+              <h1 className={`${rajdhani.className} mt-2 text-4xl font-bold text-slate-900 dark:text-white`}>
                 {profile.username}
               </h1>
             </div>
-            <div className="rounded-full border border-cyan-400/40 bg-cyan-400/10 px-3 py-1 text-xs font-bold uppercase tracking-[0.3em] text-cyan-200">
+            <div className="rounded-full border border-cyan-400/40 bg-cyan-400/10 px-3 py-1 text-xs font-bold uppercase tracking-[0.3em] text-cyan-700 dark:text-cyan-200">
               {rankLabel}
             </div>
           </div>
 
-          <p className={`${rajdhani.className} mt-3 text-lg text-slate-300`}>
+          <p className={`${rajdhani.className} mt-3 text-lg text-slate-600 dark:text-slate-300`}>
             {profile.description || "No description provided"}
           </p>
 
-          <div className="mt-6 rounded-3xl border border-cyan-400/30 bg-linear-to-br from-slate-900 via-slate-950 to-slate-900 p-4 shadow-[inset_0_1px_0_rgba(255,255,255,0.08)]">
-            <div className="flex items-center justify-between gap-3 text-sm text-slate-200">
-              <span className="font-semibold uppercase tracking-[0.25em] text-cyan-300">
+          <div className="mt-6 rounded-3xl border border-cyan-400/30 bg-linear-to-br from-slate-100 via-white to-slate-100 p-4 shadow-[inset_0_1px_0_rgba(255,255,255,0.08)] dark:from-slate-900 dark:via-slate-950 dark:to-slate-900">
+            <div className="flex items-center justify-between gap-3 text-sm text-slate-700 dark:text-slate-200">
+              <span className="font-semibold uppercase tracking-[0.25em] text-cyan-700 dark:text-cyan-300">
                 Level {level}
               </span>
-              <span className="font-semibold text-violet-200">
+              <span className="font-semibold text-violet-700 dark:text-violet-200">
                 {xpIntoLevel} / {nextLevelXP - currentLevelXP} XP
               </span>
             </div>
 
-            <div className="relative mt-4 h-5 overflow-hidden rounded-full border border-cyan-500/40 bg-slate-800">
+            <div className="relative mt-4 h-5 overflow-hidden rounded-full border border-cyan-500/40 bg-slate-200 dark:bg-slate-800">
               <div
                 className="absolute inset-y-0 left-0 rounded-full bg-linear-to-r from-cyan-400 via-blue-500 to-violet-500 shadow-[0_0_20px_rgba(96,165,250,0.8)] transition-all duration-500"
                 style={{ width: `${progressPercent}%` }}
@@ -188,13 +183,13 @@ export default function ProfilePage() {
               </div>
             </div>
 
-            <div className="mt-3 flex items-center justify-between text-[11px] uppercase tracking-[0.3em] text-slate-400">
+            <div className="mt-3 flex items-center justify-between text-[11px] uppercase tracking-[0.3em] text-slate-500 dark:text-slate-400">
               <span>Next rank unlocks at {nextLevelXP} XP</span>
               <span>{stats?.ovr ?? 0} OVR</span>
             </div>
           </div>
 
-          <div className={`${rajdhani.className} mt-8 space-y-3 text-lg text-slate-900`}>
+          <div className={`${rajdhani.className} mt-8 space-y-3 text-lg text-slate-900 dark:text-slate-100`}>
             <div>
               🏆 OVR: <span className="font-semibold">{stats?.ovr ?? 0}</span>
             </div>

@@ -1,11 +1,11 @@
 import ProfileCard from "@/components/big-components/profilecard"
 
-export default function Profile(){
-    return(
-        <main className="min-h-screen bg-slate-50 dark:bg-gray-900 px-4 pb-12 pt-24 sm:px-6 lg:px-8">
-          <div className="mx-auto max-w-6xl border-t-4 border-yellow-400 pt-8">
-            <ProfileCard/>
-          </div>
-        </main>
-    )
+export default function Profile() {
+  return (
+    <main className="min-h-screen bg-slate-50 px-4 py-6 text-slate-900 dark:bg-slate-950 dark:text-slate-100 sm:px-6 lg:px-8">
+      <div className="mx-auto max-w-4xl">
+        <ProfileCard />
+      </div>
+    </main>
+  )
 }
