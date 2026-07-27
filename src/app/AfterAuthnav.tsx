@@ -174,7 +174,7 @@ export default function Navbar() {
           >
             <div className="relative w-8 h-8">
               <Image
-                src="/icon.png"
+                src="/icon.svg"
                 alt="Ascension Icon"
                 fill
                 sizes="32px"
