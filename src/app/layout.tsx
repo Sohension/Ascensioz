@@ -4,6 +4,7 @@ import Script from "next/script";
 import { ThemeProvider } from "next-themes";
 import "./globals.css";
 import NavWrapper from "./NavWrapper";
+import GlobalAudio from "@/components/GlobalAudio";
 
 const rajdhani = Rajdhani({
   variable: "--font-sans",
@@ -54,6 +55,7 @@ export default function RootLayout({
           disableTransitionOnChange
         >
           <NavWrapper>{children}</NavWrapper>
+          <GlobalAudio />
         </ThemeProvider>
       </body>
     </html>
