@@ -24,10 +24,17 @@ LessonManager="*uid://ck1bi24gcj6as"
 SupabaseManager="*uid://dgyljii68y3kl"
 MobileControls="*uid://dyhf03lk2m4xd"
 QuestionManager="*uid://bes0n6d4gs61v"
+_mcp_game_helper="*res://addons/godot_ai/runtime/game_helper.gd"
 
 [editor_plugins]
 
-enabled=PackedStringArray("res://addons/supabase/plugin.cfg")
+enabled=PackedStringArray("res://addons/godot_ai/plugin.cfg", "res://addons/supabase/plugin.cfg")
+
+[importer_defaults]
+
+animation_library={
+&"animation/fps": 60.0
+}
 
 [input]
 
@@ -97,3 +104,4 @@ rendering_device/driver.windows="d3d12"
 renderer/rendering_method="gl_compatibility"
 renderer/rendering_method.mobile="gl_compatibility"
 textures/vram_compression/import_etc2_astc=true
+environment/defaults/default_clear_color=Color(0.16130835, 0.19746423, 0.3000385, 1)
