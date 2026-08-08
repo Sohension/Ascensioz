@@ -40,6 +40,26 @@ type Profile = {
   user_stats: Stats | null;
 };
 
+type Follower = {
+  id: string;
+  username: string;
+  avatar: string;
+};
+
+type FriendshipRow = {
+  friend_id?: string;
+  user_id?: string;
+  profiles?:
+    | {
+        id?: string;
+        username?: string;
+      }
+    | Array<{
+        id?: string;
+        username?: string;
+      }>;
+};
+
 /* ---------------- PAGE ---------------- */
 
 const PROFILE_BANNER_STORAGE_KEY = "ascensioz.profile.banner";
@@ -50,6 +70,9 @@ export default function ProfilePage() {
   const [loading, setLoading] = useState(true);
   const [bannerPreview, setBannerPreview] = useState<string | null>(null);
   const [avatarPreview, setAvatarPreview] = useState<string | null>(null);
+  const [followingList, setFollowingList] = useState<Follower[]>([]);
+  const [followersList, setFollowersList] = useState<Follower[]>([]);
+  const [activeList, setActiveList] = useState<"following" | "followers">("following");
 
   useEffect(() => {
     if (typeof window !== "undefined") {
@@ -118,10 +141,33 @@ export default function ProfilePage() {
           console.log("❌ PROFILE DATA IS NULL");
         }
 
-        if (data) {
+if (data) {
           console.log("✅ PROFILE FOUND");
           setProfile(data as unknown as Profile);
         }
+
+        const { data: followingRows } = await supabase
+          .from("friendships")
+          .select("friend_id, profiles:friend_id ( id, username )")
+          .eq("user_id", user.id);
+
+        const { data: followerRows } = await supabase
+          .from("friendships")
+          .select("user_id, profiles:user_id ( id, username )")
+          .eq("friend_id", user.id);
+
+const toFollower = (row: FriendshipRow): Follower => {
+          const raw = row.profiles;
+          const p = Array.isArray(raw) ? raw[0] ?? {} : raw ?? {};
+          return {
+            id: p.id ?? row.friend_id ?? row.user_id ?? "",
+            username: p.username ?? "Unknown",
+            avatar: String(p.username ?? "?").slice(0, 1).toUpperCase(),
+          };
+        };
+
+        setFollowingList((followingRows ?? []).map(toFollower));
+        setFollowersList((followerRows ?? []).map(toFollower));
 
         console.log("========== PROFILE LOAD END ==========");
       } catch (err) {
@@ -282,43 +328,31 @@ export default function ProfilePage() {
                   <span className="text-lg font-black text-white">{stats?.ascenzy ?? 0}</span>
                   <span className="ml-2 text-[11px] uppercase tracking-[0.2em] text-slate-400">Ascenzy</span>
                 </div>
-                <div>
+<div>
                   <span className="text-lg font-black text-white">{progressPercent}%</span>
                   <span className="ml-2 text-[11px] uppercase tracking-[0.2em] text-slate-400">Level Progress</span>
+                </div>
+                <div>
+                  <span className="text-lg font-black text-white">{followingList.length}</span>
+                  <span className="ml-2 text-[11px] uppercase tracking-[0.2em] text-slate-400">Following</span>
+                </div>
+                <div>
+                  <span className="text-lg font-black text-white">{followersList.length}</span>
+                  <span className="ml-2 text-[11px] uppercase tracking-[0.2em] text-slate-400">Followers</span>
                 </div>
               </div>
 
               <div className="mt-6 grid gap-4 md:grid-cols-[minmax(300px,0.88fr)_minmax(340px,1fr)]">
-                <section className="rounded-[24px] border border-slate-700 bg-slate-950/40 p-5">
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <p className="text-[11px] font-black uppercase tracking-[0.28em] text-slate-400">
-                        Bio
-                      </p>
-                    </div>
-                    <span className={rankBadgeClassName}>
-                      <span className="h-1.5 w-1.5 rounded-full bg-current opacity-90" />
-                      <span>{rankLabel}</span>
-                    </span>
+<section className="rounded-[24px] border border-slate-700 bg-slate-950/40 p-5">
+                  <div>
+                    <p className="text-[11px] font-black uppercase tracking-[0.28em] text-slate-400">
+                      Bio
+                    </p>
                   </div>
 
                   <p className="mt-4 text-lg leading-relaxed text-slate-100">
                     {profile.description || "No description provided"}
                   </p>
-
-                  <div className="mt-5">
-                    <div className="flex items-center justify-between text-[11px] font-black uppercase tracking-[0.25em] text-slate-300">
-                      <span>Progress to next level</span>
-                      <span>{progressPercent}%</span>
-                    </div>
-                    <div className="mt-3 h-2 overflow-hidden rounded-full bg-slate-800">
-                      <div className="h-full rounded-full bg-emerald-300 transition-all duration-500" style={{ width: `${progressPercent}%` }} />
-                    </div>
-                    <div className="mt-2 flex items-center justify-between text-[10px] font-black uppercase tracking-[0.24em] text-slate-400">
-                      <span>{xpIntoLevel} XP</span>
-                      <span>{nextLevelXP - currentLevelXP} XP</span>
-                    </div>
-                  </div>
                 </section>
 
                 <section className="rounded-[24px] border border-slate-700 bg-slate-950/50 p-5">
@@ -356,11 +390,64 @@ export default function ProfilePage() {
                 </section>
               </div>
 
-              <div className="mt-6 border-t border-slate-700 pt-5">
-                <div className="flex gap-4 text-[11px] font-black uppercase tracking-[0.24em] text-slate-400">
-                  <span className="border-b border-emerald-300 pb-2 text-emerald-300">Overview</span>
-                  <span className="pb-2">Challenges</span>
-                  <span className="pb-2">Achievements</span>
+<div className="mt-6 border-t border-slate-700 pt-5">
+                <div className="flex gap-4 text-[11px] font-black uppercase tracking-[0.24em]">
+                  <button
+                    onClick={() => setActiveList("following")}
+                    className={`pb-2 transition ${
+                      activeList === "following" ? "border-b border-emerald-300 text-emerald-300" : "text-slate-400 hover:text-slate-200"
+                    }`}
+                  >
+                    Following
+                  </button>
+                  <button
+                    onClick={() => setActiveList("followers")}
+                    className={`pb-2 transition ${
+                      activeList === "followers" ? "border-b border-emerald-300 text-emerald-300" : "text-slate-400 hover:text-slate-200"
+                    }`}
+                  >
+                    Followers
+                  </button>
+                </div>
+
+                <div className="mt-4">
+                  {activeList === "following" ? (
+                    followingList.length > 0 ? (
+                      <div className="space-y-2">
+                        {followingList.map((person) => (
+                          <div key={person.id} className="flex items-center gap-3 rounded-2xl border border-slate-700 bg-slate-950/60 px-4 py-2.5">
+                            <span className="grid h-9 w-9 place-items-center rounded-full border border-slate-600 bg-slate-800 text-[11px] font-black text-white">
+                              {person.avatar}
+                            </span>
+                            <span className="text-[11px] font-black uppercase tracking-[0.22em] text-slate-100">
+                              {person.username}
+                            </span>
+                          </div>
+                        ))}
+                      </div>
+                    ) : (
+                      <div className="rounded-2xl border border-dashed border-slate-600 px-4 py-6 text-center text-[10px] font-black uppercase tracking-[0.24em] text-slate-500">
+                        Not following anyone yet
+                      </div>
+                    )
+                  ) : followersList.length > 0 ? (
+                    <div className="space-y-2">
+                      {followersList.map((person) => (
+                        <div key={person.id} className="flex items-center gap-3 rounded-2xl border border-slate-700 bg-slate-950/60 px-4 py-2.5">
+                          <span className="grid h-9 w-9 place-items-center rounded-full border border-slate-600 bg-slate-800 text-[11px] font-black text-white">
+                            {person.avatar}
+                          </span>
+                          <span className="text-[11px] font-black uppercase tracking-[0.22em] text-slate-100">
+                            {person.username}
+                          </span>
+                        </div>
+                      ))}
+                    </div>
+                  ) : (
+                    <div className="rounded-2xl border border-dashed border-slate-600 px-4 py-6 text-center text-[10px] font-black uppercase tracking-[0.24em] text-slate-500">
+                      No followers yet
+                    </div>
+                  )}
                 </div>
               </div>
             </div>
