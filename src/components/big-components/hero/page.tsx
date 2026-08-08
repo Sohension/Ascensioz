@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
 import Link from "next/link";
 import { AnimatedGridPattern } from "@/components/ui/animated-grid-pattern";
+import { AnimatedGradientText } from "@/components/ui/animated-gradient-text";
 import { Rajdhani, Montserrat } from "next/font/google";
 import Navbar from "@/components/big-components/Navbar";
 import { motion } from "framer-motion";
@@ -87,12 +88,53 @@ export default function Hero() {
     "Problem Solving",
   ];
 
+  const heroTypewriterPhrases = [
+    "Learn Python by playing",
+    "Build skills that matter",
+    "Turn problems into progress",
+  ];
+
   const [mounted, setMounted] = useState(false);
+  const [typewriterText, setTypewriterText] = useState("");
   const { resolvedTheme } = useTheme();
   const isDark = mounted && resolvedTheme === "dark";
 
   useEffect(() => {
     setMounted(true);
+  }, []);
+
+  useEffect(() => {
+    if (!heroTypewriterPhrases.length) return;
+
+    let phraseIndex = 0;
+    let charIndex = 0;
+    let deleting = false;
+
+    const typeInterval = setInterval(() => {
+      const currentPhrase = heroTypewriterPhrases[phraseIndex];
+
+      if (!deleting) {
+        charIndex += 1;
+        setTypewriterText(currentPhrase.slice(0, charIndex));
+
+        if (charIndex >= currentPhrase.length) {
+          deleting = true;
+          setTimeout(() => {
+            deleting = false;
+          }, 1550);
+        }
+      } else {
+        charIndex -= 1;
+        setTypewriterText(currentPhrase.slice(0, charIndex));
+
+        if (charIndex <= 0) {
+          deleting = false;
+          phraseIndex = (phraseIndex + 1) % heroTypewriterPhrases.length;
+        }
+      }
+    }, 88);
+
+    return () => clearInterval(typeInterval);
   }, []);
 
   return (
@@ -150,17 +192,47 @@ export default function Hero() {
             transition={{ duration: 1, ease: "easeOut" }}
             className="relative z-20 max-w-5xl space-y-10 md:space-y-16"
           >
-            <motion.h1
+            <motion.div
               initial={{ opacity: 0, y: 20, filter: "blur(10px)" }}
               animate={{ opacity: 1, y: 0, filter: "blur(0px)" }}
               transition={{ duration: 1.2, ease: "easeOut", delay: 0.2 }}
-              className={`${montserrat.className} text-5xl sm:text-6xl md:text-8xl xl:text-[110px] tracking-tight leading-[1.05] drop-shadow-lg ${
-                isDark ? "text-white" : "text-slate-950"
-              }`}
+              className="relative"
             >
-              Learn Python <br className="hidden md:inline" />
-              by playing.
-            </motion.h1>
+              <div className="absolute -inset-4 rounded-[2rem] blur-2xl opacity-60 pointer-events-none bg-linear-to-r from-yellow-500/30 to-sky-500/20" />
+
+              <h1
+                className={`${montserrat.className} relative text-5xl sm:text-6xl md:text-8xl xl:text-[110px] tracking-tight leading-[1.05] drop-shadow-lg ${
+                  isDark ? "text-white" : "text-slate-950"
+                }`}
+              >
+                <span className="inline-flex items-center gap-2">
+                  <span className="typewriter-text">{typewriterText}</span>
+                  <span className="typewriter-cursor" aria-hidden="true" />
+                </span>
+                <br className="hidden md:inline" />
+                <span className="inline-flex items-center gap-3">
+                  <AnimatedGradientText
+                    className="text-5xl sm:text-6xl md:text-7xl xl:text-[96px]"
+                    speed={0.9}
+                    colorFrom="#facc15"
+                    colorTo="#38bdf8"
+                  >
+                    Ascension
+                  </AnimatedGradientText>
+                  <span className="hidden md:inline">.</span>
+                </span>
+              </h1>
+            </motion.div>
+
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 1, ease: "easeOut", delay: 0.42 }}
+              className="flex items-center gap-4"
+            >
+              <span className="h-px w-16 bg-yellow-400" />
+              <span className={`${rajdhani.className} text-xs sm:text-sm font-bold uppercase tracking-[0.28em] ${isDark ? "text-slate-300" : "text-slate-600"}`}>Learning Arcade</span>
+            </motion.div>
 
             <motion.p
               initial={{ opacity: 0, y: 20 }}

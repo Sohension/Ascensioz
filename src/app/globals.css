@@ -126,13 +126,84 @@
 @layer base {
   * {
     @apply border-border outline-ring/50;
-    }
+  }
+
   body {
     @apply bg-background text-foreground;
-    }
+    font-family: var(--font-sans), Arial, sans-serif;
+  }
+
   html {
-    @apply font-sans;
-    }
+    font-family: var(--font-sans), Arial, sans-serif;
+  }
+
+  h1,
+  h2,
+  h3,
+  h4,
+  h5,
+  h6 {
+    font-family: var(--font-heading), Arial, sans-serif;
+  }
+
+  p,
+  span,
+  label,
+  div,
+  button,
+  a {
+    font-family: inherit;
+  }
+}
+
+.typewriter-text {
+  display: inline-block;
+  min-height: 1.08em;
+  background: linear-gradient(135deg, #f8fafc 0%, #fde68a 55%, #38bdf8 100%);
+  background-clip: text;
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  text-shadow: 0 0 24px rgba(250, 204, 21, 0.2);
+  max-width: min(12ch, 88vw);
+  white-space: nowrap;
+  overflow: hidden;
+}
+
+.typewriter-cursor {
+  display: inline-block;
+  width: 0.08em;
+  height: 0.88em;
+  margin-left: 0.12em;
+  vertical-align: -0.08em;
+  border-radius: 999px;
+  background: linear-gradient(180deg, #facc15, #fbbf24);
+  animation: cursorBlink 0.82s ease-in-out infinite;
+}
+
+@media (max-width: 640px) {
+  .typewriter-text {
+    font-size: 0.88em;
+    line-height: 1.05;
+    white-space: normal;
+    max-width: 100%;
+  }
+
+  .typewriter-cursor {
+    height: 0.72em;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .typewriter-cursor {
+    animation: none;
+  }
+}
+
+@keyframes cursorBlink {
+  50% {
+    opacity: 0.24;
+    transform: scaleY(0.72);
+  }
 }
 
 ::view-transition-old(root), ::view-transition-new(root) {

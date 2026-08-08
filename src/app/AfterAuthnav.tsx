@@ -9,7 +9,6 @@ import { useRouter } from "next/navigation";
 import type { User } from "@supabase/supabase-js";
 import { AnimatedThemeToggler } from "@/components/ui/animated-theme-toggler";
 import { Progress } from "@/components/ui/progress";
-import { getRank } from "@/lib/cache/rank";
 
 const rajdhani = Rajdhani({
   subsets: ["latin"],
@@ -134,7 +133,6 @@ export default function Navbar() {
     Math.round((xpIntoLevel / Math.max(1, nextLevelXp - currentLevelXp)) * 100),
     100,
   );
-  const currentRank = stats?.rank ?? getRank(xp);
 
   const navLinks: NavItem[] = [
     { name: "Home", href: "/dashboard" },
@@ -150,6 +148,7 @@ export default function Navbar() {
       name: "Community",
       children: [{ name: "Blog", href: "/community/blog" }],
     },
+    { name: "Friends", href: "/friends" },
     { name: "Events", href: "/events", comingSoon: true },
   ];
 
@@ -252,23 +251,17 @@ export default function Navbar() {
             />
 
             {stats && (
-              <div className="hidden xl:flex items-center gap-3 px-3 py-2 rounded-xl shadow-[0_10px_30px_rgba(34,211,238,0.12)] border bg-white/90 border-slate-200 text-slate-900 dark:bg-zinc-900/90 dark:border-zinc-800 dark:text-white">
+              <div className="hidden xl:flex items-center gap-2 rounded-xl border border-slate-200 bg-white/90 px-3 py-2 text-slate-900 dark:border-zinc-800 dark:bg-zinc-900/90 dark:text-white">
                 <div className="min-w-45">
-                  <div className="mb-1 flex items-center justify-between gap-3 text-[10px] font-bold uppercase tracking-[0.32em] text-cyan-700 dark:text-cyan-400">
-                    <span>{user?.email?.split("@")[0] || "Player"}</span>
+                  <div className="mb-1 flex items-center justify-between text-[9px] font-black uppercase tracking-[0.24em] text-slate-600 dark:text-slate-300">
                     <span>Lv {level}</span>
+                    <span>{xpIntoLevel}/{nextLevelXp - currentLevelXp} XP</span>
                   </div>
                   <Progress
                     value={levelProgress}
                     max={100}
-                    className="h-2 rounded-full bg-slate-200 dark:bg-zinc-800 [&>div]:bg-cyan-600 dark:[&>div]:bg-cyan-400"
+                    className="h-1.5 rounded-full bg-slate-200 dark:bg-zinc-800 [&>div]:bg-cyan-600 dark:[&>div]:bg-cyan-400"
                   />
-                  <div className="mt-1 flex items-center justify-between text-[10px] text-slate-600 dark:text-zinc-400">
-                    <span>{currentRank}</span>
-                    <span>
-                      {xpIntoLevel}/{nextLevelXp - currentLevelXp} XP
-                    </span>
-                  </div>
                 </div>
               </div>
             )}
