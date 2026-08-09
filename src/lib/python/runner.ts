@@ -1,7 +1,7 @@
-import { spawn, type ChildProcess } from "node:child_process";
+import { spawn, execFile, type ChildProcess } from "node:child_process";
 import { randomUUID } from "node:crypto";
-import { mkdtemp, writeFile, rm, mkdir } from "node:fs/promises";
-import { tmpdir, platform } from "node:os";
+import { mkdtemp, writeFile, rm, mkdir, access, readdir } from "node:fs/promises";
+import { tmpdir, platform, homedir } from "node:os";
 import { join } from "node:path";
 import type {
   PythonRunRequest,
@@ -13,6 +13,146 @@ export const DEFAULT_TIMEOUT_MS = 10_000;
 const MAX_SOURCE_BYTES = 256 * 1024; // 256 KB
 const MAX_OUTPUT_BYTES = 1 * 1024 * 1024; // 1 MB
 const MAX_FILES = 50;
+
+/**
+ * Resolves the path to a usable Python interpreter.
+ *
+ * On many Windows setups Python is installed via the Microsoft Store, which
+ * exposes an "App Execution Alias" (a reparse point) that Node's `spawn`
+ * cannot resolve reliably (it throws ENOENT). We therefore probe several
+ * candidate sources and cache the first executable we find:
+ *
+ *   1. An explicit `PYTHON`/`PYTHON_BIN` env override.
+ *   2. `py` launcher (Windows) via `py -3 -c "import sys; print(sys.executable)"`.
+ *   3. `where.exe python` / `which python` to resolve the on-PATH interpreter.
+ *   4. Well-known install / Store alias directories.
+ *   5. Fall back to the bare command name `python`.
+ */
+const PYTHON_CANDIDATE_DIRS = [
+  // Microsoft Store aliases (globbed by probing the known base dirs).
+  join(process.env.LOCALAPPDATA ?? "", "Microsoft", "WindowsApps"),
+  // Common installs.
+  join(process.env.ProgramFiles ?? "C:\\Program Files", "Python"),
+  join(process.env["ProgramFiles(x86)"] ?? "C:\\Program Files (x86)", "Python"),
+  join(homedir(), "AppData", "Local", "Programs", "Python"),
+];
+
+let cachedPython: string | undefined;
+
+function isExecutable(p: string): Promise<boolean> {
+  return access(p).then(
+    () => true,
+    () => false,
+  );
+}
+
+/**
+ * Verifies a candidate actually launches by running `-c "print(1)"`.
+ * Necessary because Windows Store "App Execution Alias" executables are
+ * reparse points that fs.access() reports as missing, yet spawn() runs them.
+ */
+function probeExecutable(p: string): Promise<boolean> {
+  return new Promise((resolve) => {
+    const child = spawn(p, ["-c", "import sys;sys.stdout.write('ok')"], {
+      stdio: ["ignore", "pipe", "pipe"],
+      windowsHide: true,
+    });
+    let out = "";
+    child.stdout?.on("data", (d: Buffer) => (out += d.toString()));
+    child.on("error", () => resolve(false));
+    child.on("close", (code) => {
+      resolve(code === 0 && out.includes("ok"));
+    });
+  });
+}
+
+async function probeCommand(
+  cmd: string,
+  args: string[],
+): Promise<string | null> {
+  return new Promise((resolve) => {
+    execFile(
+      cmd,
+      args,
+      { timeout: 5000, windowsHide: true },
+      (err, stdout) => {
+        if (err) {
+          resolve(null);
+          return;
+        }
+        const line = String(stdout).trim().split(/\r?\n/)[0]?.trim();
+        if (line) resolve(line);
+        else resolve(null);
+      },
+    );
+  });
+}
+
+async function resolvePython(): Promise<string> {
+  // 1. Explicit override.
+  for (const key of ["PYTHON_BIN", "PYTHON"]) {
+    const override = process.env[key];
+    if (override && (await isExecutable(override))) return override;
+  }
+
+  // 2. Windows `py` launcher — most reliable for Store installs.
+  if (platform() === "win32") {
+    const py = await probeCommand("py", ["-3", "-c", "import sys;print(sys.executable)"]);
+    if (py && (await isExecutable(py))) return py;
+  }
+
+  // 3. Resolve the on-PATH interpreter to an absolute path.
+  let resolved: string | null = null;
+  const where = await probeCommand("where.exe", ["python"]);
+  if (!where) {
+    resolved = await probeCommand("which", ["python"]);
+  } else {
+    resolved = where;
+  }
+  if (resolved && (await isExecutable(resolved))) return resolved;
+
+  // 4. Probe well-known directories (including Store aliases).
+  for (const dir of PYTHON_CANDIDATE_DIRS) {
+    for (const name of ["python.exe", "python3.exe"]) {
+      const candidate = join(dir, name);
+      if (await isExecutable(candidate)) return candidate;
+    }
+  }
+
+// 5. Scan the WindowsApps Store-alias subdirectories (the alias itself is a
+  // 0-byte reparse point; the real executable lives in a versioned subdir).
+  // These are also reparse points, so verify with an actual launch.
+  const windowsApps = join(
+    process.env.LOCALAPPDATA ?? "",
+    "Microsoft",
+    "WindowsApps",
+  );
+  try {
+    const entries = await readdir(windowsApps, { withFileTypes: true });
+    for (const entry of entries) {
+      if (!entry.isDirectory()) continue;
+      if (!/^PythonSoftwareFoundation\.Python/i.test(entry.name)) continue;
+      const candidate = join(windowsApps, entry.name, "python.exe");
+      if (await probeExecutable(candidate)) return candidate;
+    }
+  } catch {
+    /* directory not accessible — ignore */
+  }
+
+  // 6. Last resort: let spawn resolve the bare command.
+  return "python";
+}
+
+async function getPython(): Promise<string> {
+  if (cachedPython !== undefined) return cachedPython;
+  cachedPython = await resolvePython();
+  return cachedPython;
+}
+
+/** Exposed for tests / diagnostics. */
+export async function getPythonPath(): Promise<string> {
+  return getPython();
+}
 
 export interface PythonRunResponse extends PythonRunResult {
   runId: string;
@@ -197,6 +337,8 @@ export async function runPython(
 
     const entryPath = join(dir, entry.replace(/\\/g, "/"));
 
+const pythonBin = await getPython();
+
     return await new Promise<PythonRunResponse>((resolve) => {
       let stdout = "";
       let stderr = "";
@@ -205,7 +347,7 @@ export async function runPython(
       let killed = false;
       let timedOut = false;
 
-      const proc = spawn("python", [entryPath], {
+      const proc = spawn(pythonBin, [entryPath], {
         cwd: dir,
         env: sanitizeEnv(),
         shell: false,
