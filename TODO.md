@@ -23,5 +23,7 @@
 - [x] Verify build passes
 
 ## Testing
-- [ ] Basic Python, variables, loops, errors, timeout, multi-file, large output
+- [x] Basic Python, variables, loops, errors, timeout, multi-file, large output
+- [x] Python runner verified end-to-end (real stdout/stderr/exit codes)
+- [x] Fixed Windows Store Python ENOENT via interpreter resolver
 
