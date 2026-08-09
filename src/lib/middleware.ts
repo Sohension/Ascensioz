@@ -35,12 +35,14 @@ export async function updateSession(request: NextRequest) {
     data: { user },
   } = await supabase.auth.getUser();
 
-  // Public routes
+// Public routes
   const isPublicRoute =
     request.nextUrl.pathname === "/" ||
     request.nextUrl.pathname.startsWith("/login") ||
     request.nextUrl.pathname.startsWith("/auth") ||
-    request.nextUrl.pathname.startsWith("/api/game");
+    request.nextUrl.pathname.startsWith("/api/game") ||
+    request.nextUrl.pathname.startsWith("/api/python") ||
+    request.nextUrl.pathname === "/ide";
 
   // Redirect unauthenticated users
   if (!user && !isPublicRoute) {
