@@ -147,8 +147,9 @@ export default function Navbar() {
     {
       name: "Community",
       children: [{ name: "Blog", href: "/community/blog" }],
-    },
+},
     { name: "Friends", href: "/friends" },
+    { name: "IDE", href: "/ide" },
     { name: "Events", href: "/events", comingSoon: true },
   ];
 
