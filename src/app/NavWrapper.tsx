@@ -6,8 +6,11 @@ import AfterAuthnav from './AfterAuthnav';
 export default function NavWrapper({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
 
-  // Don't show AfterAuthnav on '/' or '/auth/login'
-  const showNav = pathname !== '/' && pathname !== '/auth/login';
+  // Don't show AfterAuthnav on '/', '/auth/login', or the full-screen IDE
+  const showNav =
+    pathname !== '/' &&
+    pathname !== '/auth/login' &&
+    pathname !== '/ide';
 
   return (
     <>
