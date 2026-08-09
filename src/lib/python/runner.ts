@@ -1,6 +1,6 @@
 import { spawn, execFile, type ChildProcess } from "node:child_process";
 import { randomUUID } from "node:crypto";
-import { mkdtemp, writeFile, rm, mkdir, access, readdir } from "node:fs/promises";
+import { mkdtemp, writeFile, rm, mkdir, readdir } from "node:fs/promises";
 import { tmpdir, platform, homedir } from "node:os";
 import { join } from "node:path";
 import type {
@@ -38,13 +38,6 @@ const PYTHON_CANDIDATE_DIRS = [
 ];
 
 let cachedPython: string | undefined;
-
-function isExecutable(p: string): Promise<boolean> {
-  return access(p).then(
-    () => true,
-    () => false,
-  );
-}
 
 /**
  * Verifies a candidate actually launches by running `-c "print(1)"`.
@@ -89,51 +82,65 @@ async function probeCommand(
 }
 
 async function resolvePython(): Promise<string> {
+  // NOTE: Every candidate is verified with `spawn` (probeExecutable), not
+  // `fs.access`. Windows Store "App Execution Alias" executables are reparse
+  // points that `fs.access` reports as missing even though `spawn` runs them.
+
   // 1. Explicit override.
   for (const key of ["PYTHON_BIN", "PYTHON"]) {
     const override = process.env[key];
-    if (override && (await isExecutable(override))) return override;
+    if (override && (await probeExecutable(override))) return override;
   }
 
   // 2. Windows `py` launcher — most reliable for Store installs.
   if (platform() === "win32") {
     const py = await probeCommand("py", ["-3", "-c", "import sys;print(sys.executable)"]);
-    if (py && (await isExecutable(py))) return py;
+    if (py && (await probeExecutable(py))) return py;
   }
 
-  // 3. Resolve the on-PATH interpreter to an absolute path.
-  let resolved: string | null = null;
+  // 3. Resolve the on-PATH interpreter to an absolute path and verify it.
   const where = await probeCommand("where.exe", ["python"]);
-  if (!where) {
-    resolved = await probeCommand("which", ["python"]);
-  } else {
-    resolved = where;
-  }
-  if (resolved && (await isExecutable(resolved))) return resolved;
+  const which = !where ? await probeCommand("which", ["python"]) : null;
+  const resolved = where ?? which;
+  if (resolved && (await probeExecutable(resolved))) return resolved;
 
-  // 4. Probe well-known directories (including Store aliases).
-  for (const dir of PYTHON_CANDIDATE_DIRS) {
+// 4. Probe well-known install directories (incl. Store alias dir) and the
+  //    versioned subdirectories python.org installs into (e.g. Python313).
+  const candidateDirs = [...PYTHON_CANDIDATE_DIRS];
+  try {
+    for (const dir of PYTHON_CANDIDATE_DIRS) {
+      const subdirs = await readdir(dir);
+      for (const sub of subdirs) {
+        if (/^Python\d/i.test(sub)) candidateDirs.push(join(dir, sub));
+      }
+    }
+  } catch {
+    /* some dirs may not exist — ignore */
+  }
+  for (const dir of candidateDirs) {
     for (const name of ["python.exe", "python3.exe"]) {
       const candidate = join(dir, name);
-      if (await isExecutable(candidate)) return candidate;
+      if (await probeExecutable(candidate)) return candidate;
     }
   }
 
-// 5. Scan the WindowsApps Store-alias subdirectories (the alias itself is a
-  // 0-byte reparse point; the real executable lives in a versioned subdir).
-  // These are also reparse points, so verify with an actual launch.
+  // 5. Scan the WindowsApps directory for Store-Python subdirectories.
+  //    The real interpreter lives in a versioned subdir; the alias is a
+  //    reparse point. We avoid `entry.isDirectory()` because reparse points
+  //    may not report as directories — just probe every candidate.
   const windowsApps = join(
     process.env.LOCALAPPDATA ?? "",
     "Microsoft",
     "WindowsApps",
   );
   try {
-    const entries = await readdir(windowsApps, { withFileTypes: true });
-    for (const entry of entries) {
-      if (!entry.isDirectory()) continue;
-      if (!/^PythonSoftwareFoundation\.Python/i.test(entry.name)) continue;
-      const candidate = join(windowsApps, entry.name, "python.exe");
-      if (await probeExecutable(candidate)) return candidate;
+    const entries = await readdir(windowsApps);
+    for (const entryName of entries) {
+      if (!/^PythonSoftwareFoundation\.Python/i.test(entryName)) continue;
+      for (const name of ["python.exe", "python3.exe"]) {
+        const candidate = join(windowsApps, entryName, name);
+        if (await probeExecutable(candidate)) return candidate;
+      }
     }
   } catch {
     /* directory not accessible — ignore */
