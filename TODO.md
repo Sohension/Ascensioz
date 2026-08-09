@@ -18,6 +18,10 @@
 - [x] `/ide` page
 - [x] Persistence helpers + shortcuts helper
 
+## IDE Upgrades
+- [x] File Explorer folder expansion (files nest under "my-project")
+- [x] Mobile compatibility (touch-friendly editor, always-visible Run/Stop, toggle-able terminal sheet)
+
 ## Integration
 - [x] Hide app nav on `/ide`
 - [x] Verify build passes
@@ -27,11 +31,27 @@
 - [x] Python runner verified end-to-end (real stdout/stderr/exit codes)
 - [x] Fixed Windows Store Python ENOENT via interpreter resolver
 
-## Upgrade 2024 (File Explorer + Mobile)
-- [x] FileExplorer: proper expanding folder tree (files nest under "my-project", chevron rotation, sticky folder header, subfolder grouping)
-- [x] Editor: mobile-aware larger font (16px), no minimap on small screens, word wrap + line-number off on touch
-- [x] Toolbar: always-visible Run/Stop text label + mobile terminal toggle button
-- [x] PythonIDE: toggle-able mobile bottom terminal sheet (slim bar when collapsed)
-- [x] StatusBar/Terminal stay consistent on mobile
-- [x] Verify build passes (compiled + TypeScript passed, /ide route built)
+# Friends / Chat Page (Supabase Realtime)
 
+## Database / migration
+- [x] Enable Realtime on existing `messages` + `friendships` tables (publication)
+- [x] Add conversation indexes + RLS helper function
+- [x] Reuse existing `messages`/`friendships` tables and RLS policies (no duplicates)
+
+## Chat UI
+- [x] Two-column responsive layout (search + conversation list | chat)
+- [x] Friend search with results + "Message" action
+- [x] Conversation list with last-message preview + timestamps
+- [x] Chat window (header, message bubbles, timestamps, input, send)
+- [x] Auto-scroll to newest message
+- [x] Loading / error / empty states
+- [x] Mobile: list ↔ chat pane switching with back button
+
+## Supabase Realtime
+- [x] Client-side channel subscription for live messages
+- [x] Subscribe/unsubscribe when conversation opens/closes
+- [x] Messages persisted via existing API routes (history survives refresh)
+- [x] Realtime connection status indicator (Live / Connecting / Offline)
+
+## Verification
+- [x] Run `npm run build` to confirm compilation
