@@ -2,6 +2,8 @@
 
 import { useState } from "react";
 import {
+  ChevronDown,
+  ChevronRight,
   FileCode2,
   FileText,
   Folder,
@@ -36,7 +38,8 @@ export default function FileExplorer({
   const [newName, setNewName] = useState("");
   const [renaming, setRenaming] = useState<string | null>(null);
   const [renameValue, setRenameValue] = useState("");
-  const [menuFor, setMenuFor] = useState<string | null>(null);
+const [menuFor, setMenuFor] = useState<string | null>(null);
+  const [folderOpen, setFolderOpen] = useState(true);
 
   const names = Object.keys(files).sort();
 
@@ -92,17 +95,31 @@ export default function FileExplorer({
         </div>
       )}
 
-      <div className="px-2">
-        <div className="flex items-center gap-1.5 py-1 text-slate-400">
-          <FolderOpen className="h-4 w-4 text-slate-500" />
-          <span className="text-xs font-medium">my-project</span>
-        </div>
+<div className="px-2">
+        <button
+          onClick={() => setFolderOpen((o) => !o)}
+          aria-expanded={folderOpen}
+          className="flex w-full items-center gap-1 py-1 text-left text-slate-400 transition-colors hover:text-slate-200"
+        >
+          {folderOpen ? (
+            <ChevronDown className="h-3.5 w-3.5 shrink-0 text-slate-500" />
+          ) : (
+            <ChevronRight className="h-3.5 w-3.5 shrink-0 text-slate-500" />
+          )}
+          {folderOpen ? (
+            <FolderOpen className="h-4 w-4 shrink-0 text-slate-500" />
+          ) : (
+            <Folder className="h-4 w-4 shrink-0 text-slate-500" />
+          )}
+          <span className="truncate text-xs font-medium">my-project</span>
+        </button>
       </div>
 
-      <div className="flex-1 overflow-y-auto pb-2">
-        {names.length === 0 && (
-          <p className="px-3 py-2 text-xs text-slate-600">No files yet.</p>
-        )}
+      {folderOpen && (
+        <div className="flex-1 overflow-y-auto pb-2">
+          {names.length === 0 && (
+            <p className="px-3 py-2 text-xs text-slate-600">No files yet.</p>
+          )}
         {names.map((name) => {
           const isActive = name === activeFile;
           const isRenaming = renaming === name;
@@ -187,11 +204,12 @@ export default function FileExplorer({
                     Cancel
                   </button>
                 </div>
-              )}
+)}
             </div>
           );
         })}
-      </div>
+        </div>
+      )}
     </div>
   );
 }
