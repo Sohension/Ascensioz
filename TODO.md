@@ -27,3 +27,11 @@
 - [x] Python runner verified end-to-end (real stdout/stderr/exit codes)
 - [x] Fixed Windows Store Python ENOENT via interpreter resolver
 
+## Upgrade 2024 (File Explorer + Mobile)
+- [x] FileExplorer: proper expanding folder tree (files nest under "my-project", chevron rotation, sticky folder header, subfolder grouping)
+- [x] Editor: mobile-aware larger font (16px), no minimap on small screens, word wrap + line-number off on touch
+- [x] Toolbar: always-visible Run/Stop text label + mobile terminal toggle button
+- [x] PythonIDE: toggle-able mobile bottom terminal sheet (slim bar when collapsed)
+- [x] StatusBar/Terminal stay consistent on mobile
+- [x] Verify build passes (compiled + TypeScript passed, /ide route built)
+

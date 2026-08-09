@@ -37,8 +37,9 @@ export default function PythonIDE() {
   const [running, setRunning] = useState(false);
   const [exitCode, setExitCode] = useState<number | null>(null);
   const [executionTime, setExecutionTime] = useState<number | null>(null);
-  const [cursor, setCursor] = useState({ line: 1, col: 1 });
+const [cursor, setCursor] = useState({ line: 1, col: 1 });
   const [mobileExplorerOpen, setMobileExplorerOpen] = useState(false);
+  const [mobileTerminalOpen, setMobileTerminalOpen] = useState(true);
   const [quickOpen, setQuickOpen] = useState(false);
   const [quickFilter, setQuickFilter] = useState("");
   const activeRunIdRef = useRef<string | null>(null);
@@ -342,11 +343,12 @@ const fileNames = useMemo(() => Object.keys(project.files).sort(), [project.file
 
   return (
     <div className="flex h-screen w-full flex-col overflow-hidden bg-[#0B0F14] text-slate-200">
-      <Toolbar
+<Toolbar
         projectName="my-project"
         running={running}
         status={status}
         explorerOpen={project.explorerOpen}
+        mobileTerminalOpen={mobileTerminalOpen}
         onToggleExplorer={() =>
           setProject((p) => ({ ...p, explorerOpen: !p.explorerOpen }))
         }
@@ -359,6 +361,7 @@ const fileNames = useMemo(() => Object.keys(project.files).sort(), [project.file
         onSave={handleSave}
         onReset={handleReset}
         onOpenMobileExplorer={() => setMobileExplorerOpen(true)}
+        onToggleMobileTerminal={() => setMobileTerminalOpen((o) => !o)}
       />
 
 {/* Desktop layout */}
@@ -430,7 +433,7 @@ const fileNames = useMemo(() => Object.keys(project.files).sort(), [project.file
         </Group>
       </div>
 
-      {/* Mobile layout */}
+{/* Mobile layout */}
       <div className="flex min-h-0 flex-1 flex-col md:hidden">
         <EditorTabs
           tabs={project.openTabs}
@@ -443,18 +446,35 @@ const fileNames = useMemo(() => Object.keys(project.files).sort(), [project.file
           onClose={closeTab}
         />
         <div className="min-h-0 flex-1">{lazyEditor}</div>
-        <div className="h-56 shrink-0 border-t border-[#1A2230]">
-          <Terminal
-            entries={terminalEntries}
-            status={status}
-            exitCode={exitCode}
-            executionTime={executionTime}
-            running={running}
-            open={terminalOpen}
-            onToggleOpen={() => setTerminalOpen((o) => !o)}
-            onClear={() => setTerminalEntries([])}
-          />
-        </div>
+        {mobileTerminalOpen ? (
+          <div className="h-56 shrink-0 border-t border-[#1A2230]">
+            <Terminal
+              entries={terminalEntries}
+              status={status}
+              exitCode={exitCode}
+              executionTime={executionTime}
+              running={running}
+              open={terminalOpen}
+              onToggleOpen={() => setTerminalOpen((o) => !o)}
+              onClear={() => setTerminalEntries([])}
+            />
+          </div>
+        ) : (
+          <button
+            onClick={() => setMobileTerminalOpen(true)}
+            className="flex h-9 shrink-0 items-center gap-2 border-t border-[#1A2230] bg-[#10151f] px-3 text-left text-xs font-semibold uppercase tracking-wider text-slate-500 transition-colors hover:bg-slate-800/50 hover:text-slate-300"
+          >
+            <span
+              className={`h-1.5 w-1.5 rounded-full ${
+                running ? "animate-pulse bg-sky-400" : "bg-slate-600"
+              }`}
+            />
+            Terminal
+            <span className="ml-auto text-[10px] font-normal normal-case text-slate-600">
+              {status === "idle" ? "" : status}
+            </span>
+          </button>
+        )}
       </div>
 
       <StatusBar

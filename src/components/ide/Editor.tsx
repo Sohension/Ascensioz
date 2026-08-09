@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useMemo, useRef } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import Editor, { type OnMount } from "@monaco-editor/react";
 
 interface CodeEditorProps {
@@ -74,6 +74,16 @@ export default function CodeEditor({
     });
   }, []);
 
+// Track whether we're on a small/touch screen so the editor adapts.
+  const [isMobile, setIsMobile] = useState(false);
+  useEffect(() => {
+    const mq = window.matchMedia("(max-width: 767px)");
+    const update = () => setIsMobile(mq.matches);
+    update();
+    mq.addEventListener("change", update);
+    return () => mq.removeEventListener("change", update);
+  }, []);
+
   const onMount: OnMount = useCallback(
     (editor, monaco) => {
       editor.addCommand(monaco.KeyMod.CtrlCmd | monaco.KeyCode.Enter, () => {
@@ -91,12 +101,14 @@ export default function CodeEditor({
 
   const options = useMemo(
     () => ({
-      fontSize: 14,
+      // Larger, touch-friendly text on mobile; tighter minimap-free layout.
+      fontSize: isMobile ? 16 : 14,
       fontFamily:
         "'Geist Mono', 'JetBrains Mono', 'Fira Code', Consolas, monospace",
-      minimap: { enabled: true, scale: 1 },
-      lineNumbers: "on" as const,
-      folding: true,
+      minimap: { enabled: !isMobile, scale: 1 },
+      lineNumbers: isMobile ? ("off" as const) : ("on" as const),
+      lineNumbersMinChars: isMobile ? 2 : 5,
+      folding: !isMobile,
       bracketPairColorization: { enabled: true },
       autoIndent: "full" as const,
       tabSize: 4,
@@ -105,15 +117,22 @@ export default function CodeEditor({
       scrollBeyondLastLine: false,
       smoothScrolling: true,
       cursorBlinking: "smooth" as const,
-      padding: { top: 12, bottom: 12 },
-      wordWrap: "off" as const,
+      cursorSmoothCaretAnimation: "on" as const,
+      padding: isMobile
+        ? { top: 20, bottom: 20 }
+        : { top: 12, bottom: 12 },
+wordWrap: isMobile ? ("on" as const) : ("off" as const),
       fixedOverflowWidgets: true,
       automaticLayout: true,
       suggestOnTriggerCharacters: true,
       quickSuggestions: true,
       tabCompletion: "on" as const,
+      scrollbar: {
+        vertical: "auto" as const,
+        horizontal: "auto" as const,
+      },
     }),
-    [],
+    [isMobile],
   );
 
   return (

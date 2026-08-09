@@ -8,6 +8,7 @@ import {
   PanelLeftClose,
   PanelLeftOpen,
   RotateCcw,
+  TerminalSquare,
 } from "lucide-react";
 import type { RunnerStatus } from "@/lib/python/types";
 
@@ -16,24 +17,28 @@ interface ToolbarProps {
   running: boolean;
   status: RunnerStatus;
   explorerOpen: boolean;
+  mobileTerminalOpen: boolean;
   onToggleExplorer: () => void;
   onRun: () => void;
   onStop: () => void;
   onSave: () => void;
   onReset: () => void;
   onOpenMobileExplorer: () => void;
+  onToggleMobileTerminal: () => void;
 }
 
 export default function Toolbar({
   projectName,
   running,
   explorerOpen,
+  mobileTerminalOpen,
   onToggleExplorer,
   onRun,
   onStop,
   onSave,
   onReset,
   onOpenMobileExplorer,
+  onToggleMobileTerminal,
 }: ToolbarProps) {
   return (
     <header className="flex h-12 shrink-0 items-center gap-2 border-b border-[#1A2230] bg-[#10151f] px-2 sm:px-3">
@@ -89,7 +94,21 @@ export default function Toolbar({
           <RotateCcw className="h-4 w-4" />
         </button>
 
-        <div className="mx-1 h-5 w-px bg-[#1A2230]" />
+<div className="mx-1 hidden h-5 w-px bg-[#1A2230] sm:block" />
+
+        {/* Mobile-terminal toggle */}
+        <button
+          onClick={onToggleMobileTerminal}
+          aria-label={mobileTerminalOpen ? "Hide terminal" : "Show terminal"}
+          title="Toggle terminal"
+          className={`rounded p-1.5 transition-colors md:hidden ${
+            mobileTerminalOpen
+              ? "bg-slate-800 text-sky-400"
+              : "text-slate-400 hover:bg-slate-800 hover:text-slate-100"
+          }`}
+        >
+          <TerminalSquare className="h-4 w-4" />
+        </button>
 
         {running ? (
           <button
@@ -99,7 +118,7 @@ export default function Toolbar({
             className="flex items-center gap-1.5 rounded-md bg-red-600 px-3 py-1.5 text-sm font-semibold text-white transition-colors hover:bg-red-500"
           >
             <Square className="h-3.5 w-3.5 fill-current" />
-            <span className="hidden sm:inline">Stop</span>
+            <span>Stop</span>
           </button>
         ) : (
           <button
@@ -109,7 +128,7 @@ export default function Toolbar({
             className="flex items-center gap-1.5 rounded-md bg-sky-600 px-3 py-1.5 text-sm font-semibold text-white transition-colors hover:bg-sky-500"
           >
             <Play className="h-3.5 w-3.5 fill-current" />
-            <span className="hidden sm:inline">Run</span>
+            <span>Run</span>
           </button>
         )}
       </div>

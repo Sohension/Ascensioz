@@ -20,9 +20,31 @@ interface FileExplorerProps {
   onDeleteFile: (name: string) => void;
 }
 
+/** Groups flat file names into a nested folder tree based on "/" separators. */
+function buildTree(
+  names: string[],
+): { dirs: Record<string, string[]>; rootFiles: string[] } {
+  const dirs: Record<string, string[]> = {};
+  const rootFiles: string[] = [];
+  for (const name of names) {
+    const idx = name.indexOf("/");
+    if (idx === -1) {
+      rootFiles.push(name);
+      continue;
+    }
+    const dir = name.slice(0, idx);
+    (dirs[dir] ??= []).push(name.slice(idx + 1));
+  }
+  return { dirs, rootFiles };
+}
+
 function iconFor(name: string) {
-  if (name.endsWith(".py")) return <FileCode2 className="h-4 w-4 text-sky-400" />;
-  if (name.endsWith(".md")) return <FileText className="h-4 w-4 text-slate-400" />;
+  if (name.endsWith(".py")) {
+    return <FileCode2 className="h-4 w-4 text-sky-400" />;
+  }
+  if (name.endsWith(".md")) {
+    return <FileText className="h-4 w-4 text-slate-400" />;
+  }
   return <FileText className="h-4 w-4 text-slate-400" />;
 }
 
@@ -38,10 +60,11 @@ export default function FileExplorer({
   const [newName, setNewName] = useState("");
   const [renaming, setRenaming] = useState<string | null>(null);
   const [renameValue, setRenameValue] = useState("");
-const [menuFor, setMenuFor] = useState<string | null>(null);
+  const [menuFor, setMenuFor] = useState<string | null>(null);
   const [folderOpen, setFolderOpen] = useState(true);
 
   const names = Object.keys(files).sort();
+  const { dirs, rootFiles } = buildTree(names);
 
   const commitCreate = () => {
     const trimmed = newName.trim();
@@ -59,6 +82,118 @@ const [menuFor, setMenuFor] = useState<string | null>(null);
     }
     setRenaming(null);
     setRenameValue("");
+  };
+
+  const renderFileRow = (fullName: string, displayName: string, indent: number) => {
+    const isActive = fullName === activeFile;
+    const isRenaming = renaming === fullName;
+    return (
+      <div
+        key={fullName}
+        className={`group relative flex items-center gap-1.5 py-1 pr-1 text-sm ${
+          isActive
+            ? "bg-slate-800 text-slate-100"
+            : "text-slate-400 hover:bg-slate-800/50"
+        }`}
+        style={{ paddingLeft: `${indent}px` }}
+        onClick={() => !isRenaming && onSelect(fullName)}
+      >
+        <span className="shrink-0">
+          {isRenaming ? (
+            <Folder className="h-4 w-4 text-slate-500" />
+          ) : (
+            iconFor(fullName)
+          )}
+        </span>
+        {isRenaming ? (
+          <input
+            autoFocus
+            value={renameValue}
+            onChange={(e) => setRenameValue(e.target.value)}
+            onKeyDown={(e) => {
+              if (e.key === "Enter") commitRename();
+              if (e.key === "Escape") setRenaming(null);
+            }}
+            onBlur={commitRename}
+            aria-label={`Rename ${fullName}`}
+            className="w-full rounded border border-sky-500 bg-slate-900 px-1 py-0.5 text-sm text-slate-100 outline-none"
+          />
+        ) : (
+          <>
+            <span className="truncate">{displayName}</span>
+            <div className="ml-auto flex shrink-0 gap-0.5 opacity-0 transition-opacity group-hover:opacity-100">
+              <button
+                onClick={(e) => {
+                  e.stopPropagation();
+                  setRenaming(fullName);
+                  setRenameValue(fullName);
+                  setMenuFor(null);
+                }}
+                aria-label={`Rename ${fullName}`}
+                title="Rename"
+                className="rounded p-0.5 text-slate-500 hover:text-slate-200"
+              >
+                <svg
+                  width="12"
+                  height="12"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="2"
+                >
+                  <path d="M17 3a2.828 2.828 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5z" />
+                </svg>
+              </button>
+              <button
+                onClick={(e) => {
+                  e.stopPropagation();
+                  setMenuFor(fullName);
+                }}
+                aria-label={`Delete ${fullName}`}
+                title="Delete"
+                className="rounded p-0.5 text-slate-500 hover:text-red-400"
+              >
+                <svg
+                  width="12"
+                  height="12"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="2"
+                >
+                  <path d="M3 6h18M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2m3 0v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6" />
+                </svg>
+              </button>
+            </div>
+          </>
+        )}
+
+        {menuFor === fullName && (
+          <div
+            className="absolute right-1 top-6 z-20 w-24 rounded border border-slate-700 bg-slate-900 py-1 shadow-lg"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <button
+              className="block w-full px-3 py-1 text-left text-xs text-red-400 hover:bg-slate-800"
+              onClick={() => {
+                onDeleteFile(fullName);
+                setMenuFor(null);
+              }}
+            >
+              Delete
+            </button>
+            <button
+              className="block w-full px-3 py-1 text-left text-xs text-slate-300 hover:bg-slate-800"
+              onClick={() => {
+                setMenuFor(null);
+              }}
+            >
+              Cancel
+            </button>
+          </div>
+        )}
+      </div>
+    );
   };
 
   return (
@@ -95,121 +230,56 @@ const [menuFor, setMenuFor] = useState<string | null>(null);
         </div>
       )}
 
-<div className="px-2">
+      {/* Sticky folder header */}
+      <div className="shrink-0 border-b border-[#1A2230] px-2 py-1">
         <button
           onClick={() => setFolderOpen((o) => !o)}
           aria-expanded={folderOpen}
-          className="flex w-full items-center gap-1 py-1 text-left text-slate-400 transition-colors hover:text-slate-200"
+          className="flex w-full items-center gap-1 rounded px-1 py-1 text-left text-slate-400 transition-colors hover:bg-slate-800/50 hover:text-slate-200"
         >
+          <span
+            className={`shrink-0 transition-transform duration-200 ${
+              folderOpen ? "rotate-90" : ""
+            }`}
+          >
+            <ChevronRight className="h-3.5 w-3.5 text-slate-500" />
+          </span>
           {folderOpen ? (
-            <ChevronDown className="h-3.5 w-3.5 shrink-0 text-slate-500" />
+            <FolderOpen className="h-4 w-4 shrink-0 text-slate-400" />
           ) : (
-            <ChevronRight className="h-3.5 w-3.5 shrink-0 text-slate-500" />
+            <Folder className="h-4 w-4 shrink-0 text-slate-400" />
           )}
-          {folderOpen ? (
-            <FolderOpen className="h-4 w-4 shrink-0 text-slate-500" />
-          ) : (
-            <Folder className="h-4 w-4 shrink-0 text-slate-500" />
-          )}
-          <span className="truncate text-xs font-medium">my-project</span>
+          <span className="truncate text-xs font-semibold">my-project</span>
         </button>
       </div>
 
-      {folderOpen && (
-        <div className="flex-1 overflow-y-auto pb-2">
-          {names.length === 0 && (
-            <p className="px-3 py-2 text-xs text-slate-600">No files yet.</p>
-          )}
-        {names.map((name) => {
-          const isActive = name === activeFile;
-          const isRenaming = renaming === name;
-          return (
-            <div
-              key={name}
-              className={`group relative flex items-center gap-1.5 py-1 pl-[18px] pr-1 text-sm ${
-                isActive
-                  ? "bg-slate-800 text-slate-100"
-                  : "text-slate-400 hover:bg-slate-800/50"
-              }`}
-              onClick={() => !isRenaming && onSelect(name)}
-            >
-              <span className="shrink-0">
-                {isRenaming ? <Folder className="h-4 w-4 text-slate-500" /> : iconFor(name)}
-              </span>
-              {isRenaming ? (
-                <input
-                  autoFocus
-                  value={renameValue}
-                  onChange={(e) => setRenameValue(e.target.value)}
-                  onKeyDown={(e) => {
-                    if (e.key === "Enter") commitRename();
-                    if (e.key === "Escape") setRenaming(null);
-                  }}
-                  onBlur={commitRename}
-                  aria-label={`Rename ${name}`}
-                  className="w-full rounded border border-sky-500 bg-slate-900 px-1 py-0.5 text-sm text-slate-100 outline-none"
-                />
-              ) : (
-                <>
-                  <span className="truncate">{name}</span>
-                  <div className="ml-auto flex shrink-0 gap-0.5 opacity-0 transition-opacity group-hover:opacity-100">
-                    <button
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        setRenaming(name);
-                        setRenameValue(name);
-                        setMenuFor(null);
-                      }}
-                      aria-label={`Rename ${name}`}
-                      title="Rename"
-                      className="rounded p-0.5 text-slate-500 hover:text-slate-200"
-                    >
-                      <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M17 3a2.828 2.828 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5z"/></svg>
-                    </button>
-                    <button
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        setMenuFor(name);
-                      }}
-                      aria-label={`Delete ${name}`}
-                      title="Delete"
-                      className="rounded p-0.5 text-slate-500 hover:text-red-400"
-                    >
-                      <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M3 6h18M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2m3 0v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6"/></svg>
-                    </button>
-                  </div>
-                </>
-              )}
-
-              {menuFor === name && (
-                <div
-                  className="absolute right-1 top-6 z-20 w-24 rounded border border-slate-700 bg-slate-900 py-1 shadow-lg"
-                  onClick={(e) => e.stopPropagation()}
-                >
-                  <button
-                    className="block w-full px-3 py-1 text-left text-xs text-red-400 hover:bg-slate-800"
-                    onClick={() => {
-                      onDeleteFile(name);
-                      setMenuFor(null);
-                    }}
-                  >
-                    Delete
-                  </button>
-                  <button
-                    className="block w-full px-3 py-1 text-left text-xs text-slate-300 hover:bg-slate-800"
-                    onClick={() => {
-                      setMenuFor(null);
-                    }}
-                  >
-                    Cancel
-                  </button>
+      {/* Scrollable file list nested under the folder */}
+      <div className="flex-1 overflow-y-auto pb-2">
+        {!folderOpen && (
+          <p className="px-4 py-2 text-xs text-slate-600">
+            {names.length} file{names.length === 1 ? "" : "s"} (collapsed)
+          </p>
+        )}
+        {folderOpen && names.length === 0 && (
+          <p className="px-4 py-2 text-xs text-slate-600">No files yet.</p>
+        )}
+        {folderOpen &&
+          rootFiles.map((name) => renderFileRow(name, name, 30))}
+        {folderOpen &&
+          Object.entries(dirs)
+            .sort(([a], [b]) => a.localeCompare(b))
+            .map(([dir, children]) => (
+              <div key={dir}>
+                <div className="flex items-center gap-1.5 py-1 pl-8 pr-1 text-sm text-slate-500">
+                  <Folder className="h-4 w-4 shrink-0 text-sky-400/70" />
+                  <span className="truncate font-medium">{dir}/</span>
                 </div>
-)}
-            </div>
-          );
-        })}
-        </div>
-      )}
+                {children.map((child) =>
+                  renderFileRow(`${dir}/${child}`, child, 50),
+                )}
+              </div>
+            ))}
+      </div>
     </div>
   );
 }
