@@ -132,6 +132,19 @@ export const ThemeProvider: React.FC<{ children: React.ReactNode }> = ({
 
 export const useTheme = () => {
   const context = useContext(ThemeContext);
-  if (!context) throw new Error("useTheme must be used within a ThemeProvider");
+
+  // Graceful fallback during static page prerendering (e.g. _not-found)
+  if (!context) {
+    return {
+      currentTheme: THEMES_CATALOG[0],
+      equippedThemeId: "default",
+      ownedThemeIds: ["default"],
+      previewTheme: () => {},
+      previewedTheme: null,
+      equipTheme: async () => {},
+      refreshUserData: async () => {},
+    };
+  }
+
   return context;
 };
