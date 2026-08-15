@@ -9,21 +9,75 @@ type PyodideRunResult = {
   status: "success" | "error" | "timeout" | "stopped" | "running";
 };
 
-let pyodidePromise: Promise<unknown> | null = null;
+let pyodideLoadPromise: Promise<unknown> | null = null;
 let pyodideLoadError: Error | null = null;
 
+function injectPyodideScript(): Promise<void> {
+  return new Promise((resolve, reject) => {
+    if (typeof document === "undefined") {
+      reject(new Error("Pyodide can only be loaded in a browser environment"));
+      return;
+    }
+
+    if ((window as any).__pyodideLoading) {
+      (window as any).__pyodideResolve?.push(resolve);
+      (window as any).__pyodideReject?.push(reject);
+      return;
+    }
+
+    (window as any).__pyodideLoading = true;
+    (window as any).__pyodideResolve = [resolve];
+    (window as any).__pyodideReject = [reject];
+
+    const script = document.createElement("script");
+    script.src = "https://cdn.jsdelivr.net/pyodide/v0.28.3/full/pyodide.js";
+    script.async = true;
+    script.onload = () => {
+      const resolvers = (window as any).__pyodideResolve ?? [];
+      const rejectors = (window as any).__pyodideReject ?? [];
+      resolvers.forEach((r: () => void) => r());
+      rejectors.forEach((r: (e: Error) => void) => r(new Error("Pyodide script loaded but loadPyodide not called")));
+    };
+    script.onerror = () => {
+      const rejectors = (window as any).__pyodideReject ?? [];
+      rejectors.forEach((r: (e: Error) => void) =>
+        r(new Error("Failed to load Pyodide script from CDN")),
+      );
+    };
+    document.head.appendChild(script);
+  });
+}
+
 async function ensurePyodide(): Promise<unknown> {
-  if (pyodidePromise) return pyodidePromise;
+  if (pyodideLoadPromise) return pyodideLoadPromise;
   if (pyodideLoadError) throw pyodideLoadError;
 
-  pyodidePromise = import("https://cdn.jsdelivr.net/pyodide/v0.28.3/full/pyodide.js")
-    .then((mod) => mod.loadPyodide())
-    .catch((err) => {
-      pyodideLoadError = err instanceof Error ? err : new Error(String(err));
-      throw pyodideLoadError;
-    });
+  await injectPyodideScript();
 
-  return pyodidePromise;
+  pyodideLoadPromise = new Promise<unknown>((resolve, reject) => {
+    try {
+      const loader = (window as any).loadPyodide;
+      if (typeof loader !== "function") {
+        throw new Error("loadPyodide is not available on window");
+      }
+      loader({
+        indexURL: "https://cdn.jsdelivr.net/pyodide/v0.28.3/full/",
+      })
+        .then((pyodide: unknown) => {
+          pyodideLoadPromise = Promise.resolve(pyodide);
+          resolve(pyodide);
+        })
+        .catch((err: Error) => {
+          pyodideLoadError = err;
+          reject(err);
+        });
+    } catch (err) {
+      pyodideLoadError = err instanceof Error ? err : new Error(String(err));
+      reject(pyodideLoadError);
+    }
+  });
+
+  return pyodideLoadPromise;
 }
 
 export async function runPythonInBrowser(
@@ -47,13 +101,11 @@ export async function runPythonInBrowser(
     const pyodide = (await ensurePyodide()) as {
       runPythonAsync: (code: string) => Promise<unknown>;
       FS: {
-        writeFile: (path: string, data: string | ArrayBuffer, opts?: { encoding?: string }) => void;
-        ensureDir: (path: string) => void;
-        unlink: (path: string) => void;
+        writeFile(path: string, data: string | ArrayBuffer, opts?: { encoding?: string }): void;
+        ensureDir(path: string): void;
+        unlink(path: string): void;
       };
-      setStdout: (opts: { batched?: (text: string) => void; stream?: (text: string) => void }) => void;
-      setStderr: (opts: { batched?: (text: string) => void; stream?: (text: string) => void }) => void;
-      globals: { get: (name: string) => unknown };
+      globals: { get(name: string): unknown };
     };
 
     const safeFiles: Record<string, string> = {};
@@ -100,13 +152,6 @@ export async function runPythonInBrowser(
       }
     };
 
-    pyodide.setStdout({
-      batched: (text: string) => capture({ current: stdoutText, bytes: stdoutBytes }, text),
-    });
-    pyodide.setStderr({
-      batched: (text: string) => capture({ current: stderrText, bytes: stderrBytes }, text),
-    });
-
     for (const [name, content] of Object.entries(safeFiles)) {
       const dir = name.includes("/") ? name.slice(0, name.lastIndexOf("/")) : "";
       if (dir) {
@@ -121,8 +166,8 @@ export async function runPythonInBrowser(
 
     const timer = setTimeout(() => {
       timedOut = true;
-      const sys = pyodide.globals.get("sys") as { exit: (code: number) => void } | undefined;
       try {
+        const sys = pyodide.globals.get("sys") as { exit: (code: number) => void } | undefined;
         sys?.exit(1);
       } catch {
         // best-effort
@@ -133,8 +178,15 @@ export async function runPythonInBrowser(
       await pyodide.runPythonAsync(`
 import sys
 import os
+import io
 
 sys.path.insert(0, "")
+
+_stdout_buf = io.StringIO()
+_stderr_buf = io.StringIO()
+
+sys.stdout = _stdout_buf
+sys.stderr = _stderr_buf
 
 try:
     exec(open(${JSON.stringify(entry)}).read(), {"__name__": "__main__"})

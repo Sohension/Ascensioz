@@ -1,6 +1,6 @@
 import { spawn, execFile, type ChildProcess } from "node:child_process";
 import { randomUUID } from "node:crypto";
-import { mkdtemp, writeFile, rm, mkdir } from "node:fs/promises";
+import { mkdtemp, writeFile, rm, mkdir, readdir } from "node:fs/promises";
 import { tmpdir, platform, homedir } from "node:os";
 import { join } from "node:path";
 import type { PythonRunRequest, PythonRunResult, RunnerStatus } from "./types";
@@ -12,9 +12,111 @@ const MAX_FILES = 50;
 
 let cachedPython: string | undefined;
 
+async function probeExecutable(p: string): Promise<boolean> {
+  return new Promise((resolve) => {
+    const child = spawn(p, ["-c", "import sys;sys.stdout.write('ok')"], {
+      stdio: ["ignore", "pipe", "pipe"],
+      windowsHide: true,
+    });
+    let out = "";
+    child.stdout?.on("data", (d: Buffer) => (out += d.toString()));
+    child.on("error", () => resolve(false));
+    child.on("close", (code) => {
+      resolve(code === 0 && out.includes("ok"));
+    });
+  });
+}
+
+async function probeCommand(
+  cmd: string,
+  args: string[],
+): Promise<string | null> {
+  return new Promise((resolve) => {
+    execFile(
+      cmd,
+      args,
+      { timeout: 5000, windowsHide: true },
+      (err, stdout) => {
+        if (err) {
+          resolve(null);
+          return;
+        }
+        const line = String(stdout).trim().split(/\r?\n/)[0]?.trim();
+        if (line) resolve(line);
+        else resolve(null);
+      },
+    );
+  });
+}
+
 async function resolvePython(): Promise<string> {
-  // --- FINAL HARDCODED PATH FOR YOUR MACHINE ---
-  return "C:\\Users\\Bucher\\AppData\\Local\\Python\\bin\\python.exe";
+  const candidateDirs = [
+    join(process.env.LOCALAPPDATA ?? "", "Microsoft", "WindowsApps"),
+    join(process.env.ProgramFiles ?? "C:\\Program Files", "Python"),
+    join(process.env["ProgramFiles(x86)"] ?? "C:\\Program Files (x86)", "Python"),
+    join(homedir(), "AppData", "Local", "Programs", "Python"),
+  ];
+
+  for (const key of ["PYTHON_BIN", "PYTHON"]) {
+    const override = process.env[key];
+    if (override && (await probeExecutable(override))) return override;
+  }
+
+  if (platform() === "win32") {
+    const py = await probeCommand("py", ["-3", "-c", "import sys;print(sys.executable)"]);
+    if (py && (await probeExecutable(py))) return py;
+  }
+
+  const wherePython = await probeCommand("where.exe", ["python"]);
+  const wherePython3 = !wherePython
+    ? await probeCommand("where.exe", ["python3"])
+    : null;
+  const resolved = wherePython ?? wherePython3;
+  if (resolved && (await probeExecutable(resolved))) return resolved;
+
+  let dirs = [...candidateDirs];
+  try {
+    for (const dir of candidateDirs) {
+      const subdirs = await readdir(dir);
+      for (const sub of subdirs) {
+        if (/^Python\d/i.test(sub)) dirs.push(join(dir, sub));
+      }
+    }
+  } catch {
+    /* some dirs may not exist */
+  }
+
+  for (const dir of dirs) {
+    for (const name of ["python.exe", "python3.exe"]) {
+      const candidate = join(dir, name);
+      if (await probeExecutable(candidate)) return candidate;
+    }
+  }
+
+  const windowsApps = join(
+    process.env.LOCALAPPDATA ?? "",
+    "Microsoft",
+    "WindowsApps",
+  );
+  try {
+    const entries = await readdir(windowsApps);
+    for (const entryName of entries) {
+      if (!/^PythonSoftwareFoundation\.Python/i.test(entryName)) continue;
+      for (const name of ["python.exe", "python3.exe"]) {
+        const candidate = join(windowsApps, entryName, name);
+        if (await probeExecutable(candidate)) return candidate;
+      }
+    }
+  } catch {
+    /* directory not accessible */
+  }
+
+  if (await probeExecutable("python")) return "python";
+  if (await probeExecutable("python3")) return "python3";
+
+  throw new Error(
+    "Python interpreter not found. Install Python from python.org and ensure it is on PATH, or set the PYTHON_BIN / PYTHON environment variable to the interpreter path.",
+  );
 }
 
 async function getPython(): Promise<string> {
@@ -257,15 +359,14 @@ export async function runPython(
       let killed = false;
       let timedOut = false;
 
-      // Platform-safe execution using cmd.exe on Windows to guarantee launch success
       const isWin = platform() === "win32";
       const proc = spawn(
-        isWin ? "cmd.exe" : pythonBin,
-        isWin ? ["/c", `"${pythonBin}"`, `"${entryPath}"`] : [entryPath],
+        pythonBin,
+        [entryPath],
         {
           cwd: dir,
           env: sanitizeEnv(),
-          shell: false,
+          shell: isWin,
           windowsHide: true,
           stdio: ["ignore", "pipe", "pipe"],
         },
