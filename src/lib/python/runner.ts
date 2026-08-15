@@ -35,7 +35,7 @@ function probeExecutable(p: string): Promise<boolean> {
 }
 
 async function resolvePython(): Promise<string> {
-  // --- HARDCODED BYPASS FOR YOUR MACHINE ---
+  // --- FINAL HARDCODED PATH FOR YOUR MACHINE ---
   return "C:\\Users\\Bucher\\AppData\\Local\\Python\\bin\\python.exe";
 }
 
