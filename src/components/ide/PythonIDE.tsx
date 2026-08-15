@@ -186,9 +186,9 @@ export default function PythonIDE() {
           error?: string;
         };
 
-        if (result.status === "error" && result.error) {
+        if (result.status === "error" && (result.error || result.stderr)) {
           serverFailed = true;
-          serverError = result.error;
+          serverError = result.error ?? result.stderr ?? "";
         } else {
           activeRunIdRef.current = null;
           if (result.stdout) {
