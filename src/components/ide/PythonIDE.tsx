@@ -2,7 +2,12 @@
 
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import dynamic from "next/dynamic";
-import { Group, Panel, Separator, type PanelImperativeHandle } from "react-resizable-panels";
+import {
+  Group,
+  Panel,
+  Separator,
+  type PanelImperativeHandle,
+} from "react-resizable-panels";
 import type { RunnerStatus } from "@/lib/python/types";
 import {
   loadProject,
@@ -38,7 +43,7 @@ export default function PythonIDE() {
   const [running, setRunning] = useState(false);
   const [exitCode, setExitCode] = useState<number | null>(null);
   const [executionTime, setExecutionTime] = useState<number | null>(null);
-const [cursor, setCursor] = useState({ line: 1, col: 1 });
+  const [cursor, setCursor] = useState({ line: 1, col: 1 });
   const [mobileExplorerOpen, setMobileExplorerOpen] = useState(false);
   const [mobileTerminalOpen, setMobileTerminalOpen] = useState(true);
   const [quickOpen, setQuickOpen] = useState(false);
@@ -59,9 +64,15 @@ const [cursor, setCursor] = useState({ line: 1, col: 1 });
     };
   }, [project]);
 
-  // Collapse / expand explorer panel via imperative API
+  // Collapse / expand explorer panel via imperative API safely
   useEffect(() => {
-    explorerPanelRef.current?.[project.explorerOpen ? "expand" : "collapse"]();
+    const panel = explorerPanelRef.current;
+    if (!panel) return;
+    if (project.explorerOpen) {
+      panel.expand();
+    } else {
+      panel.collapse();
+    }
   }, [project.explorerOpen]);
 
   // Global keyboard shortcuts
@@ -134,10 +145,9 @@ const [cursor, setCursor] = useState({ line: 1, col: 1 });
     setTerminalOpen(true);
     setTerminalEntries([]);
 
-const controller = new AbortController();
+    const controller = new AbortController();
     abortRef.current = controller;
 
-    // Client-generated id so the Stop button can terminate this run immediately.
     const runId =
       typeof crypto !== "undefined" && "randomUUID" in crypto
         ? crypto.randomUUID()
@@ -157,72 +167,166 @@ const controller = new AbortController();
         signal: controller.signal,
       });
 
+      let serverFailed = false;
+      let serverError = "";
+
       if (!res.ok) {
+        serverFailed = true;
         const data = await res.json().catch(() => ({}));
-        throw new Error(data.error ?? `Run failed (${res.status})`);
-      }
+        serverError =
+          (data as { error?: string }).error ?? `Run failed (${res.status})`;
+      } else {
+        const result = (await res.json()) as {
+          status?: string;
+          stdout?: string;
+          stderr?: string;
+          exitCode?: number | null;
+          executionTime?: number;
+          truncated?: boolean;
+          error?: string;
+        };
 
-      const result = await res.json();
-      activeRunIdRef.current = null;
-
-      if (result.stdout) {
-        appendEntry({ kind: "stdout", text: result.stdout.replace(/\n$/, "") });
-      }
-      if (result.stderr) {
-        appendEntry({ kind: "stderr", text: result.stderr.replace(/\n$/, "") });
-      }
-      if (result.truncated) {
-        appendEntry({
-          kind: "system",
-          text: "[output truncated: limit reached]",
-        });
-      }
-
-      setStatus(result.status);
-      setExitCode(result.exitCode);
-      setExecutionTime(result.executionTime);
-    } catch (err) {
-      if (controller.signal.aborted) {
-        appendEntry({ kind: "system", text: "Run cancelled." });
-        setStatus("stopped");
-      } else if (
-        err instanceof Error &&
-        err.message.includes("Python interpreter not found")
-      ) {
-        appendEntry({
-          kind: "system",
-          text: "[fallback] Server Python not found, running in browser with Pyodide...",
-        });
-        try {
-          const result = await runPythonInBrowser(files, entry);
+        if (result.status === "error" && result.error) {
+          serverFailed = true;
+          serverError = result.error;
+        } else {
           activeRunIdRef.current = null;
           if (result.stdout) {
-            appendEntry({ kind: "stdout", text: result.stdout.replace(/\n$/, "") });
+            appendEntry({
+              kind: "stdout",
+              text: result.stdout.replace(/\n$/, ""),
+            });
           }
           if (result.stderr) {
-            appendEntry({ kind: "stderr", text: result.stderr.replace(/\n$/, "") });
+            appendEntry({
+              kind: "stderr",
+              text: result.stderr.replace(/\n$/, ""),
+            });
           }
           if (result.truncated) {
-            appendEntry({ kind: "system", text: "[output truncated: limit reached]" });
+            appendEntry({
+              kind: "system",
+              text: "[output truncated: limit reached]",
+            });
           }
-          setStatus(result.status);
-          setExitCode(result.exitCode);
-          setExecutionTime(result.executionTime);
-        } catch (pyErr) {
+          setStatus(
+            (result.status ?? "idle") as Parameters<typeof setStatus>[0],
+          );
+          setExitCode(result.exitCode ?? null);
+          setExecutionTime(result.executionTime ?? null);
+        }
+      }
+
+      if (serverFailed) {
+        const isPythonInfraError =
+          serverError.includes("Python interpreter not found") ||
+          serverError.includes("spawn python") ||
+          serverError.includes("ENOENT") ||
+          serverError.includes("[runner]");
+
+        if (isPythonInfraError) {
+          appendEntry({
+            kind: "system",
+            text: "[fallback] Server Python unavailable, running in browser with Pyodide...",
+          });
+          try {
+            const result = await runPythonInBrowser(files, entry);
+            activeRunIdRef.current = null;
+            if (result.stdout) {
+              appendEntry({
+                kind: "stdout",
+                text: result.stdout.replace(/\n$/, ""),
+              });
+            }
+            if (result.stderr) {
+              appendEntry({
+                kind: "stderr",
+                text: result.stderr.replace(/\n$/, ""),
+              });
+            }
+            if (result.truncated) {
+              appendEntry({
+                kind: "system",
+                text: "[output truncated: limit reached]",
+              });
+            }
+            setStatus(result.status);
+            setExitCode(result.exitCode);
+            setExecutionTime(result.executionTime);
+          } catch (pyErr) {
+            appendEntry({
+              kind: "stderr",
+              text: `Error: ${pyErr instanceof Error ? pyErr.message : String(pyErr)}`,
+            });
+            setStatus("error");
+            setExitCode(1);
+          }
+        } else {
           appendEntry({
             kind: "stderr",
-            text: `Error: ${pyErr instanceof Error ? pyErr.message : String(pyErr)}`,
+            text: `Error: ${serverError}`,
           });
           setStatus("error");
           setExitCode(1);
         }
+      }
+    } catch (err) {
+      if (controller.signal.aborted) {
+        appendEntry({ kind: "system", text: "Run cancelled." });
+        setStatus("stopped");
       } else {
-        appendEntry({
-          kind: "stderr",
-          text: `Error: ${err instanceof Error ? err.message : String(err)}`,
-        });
-        setStatus("error");
-        setExitCode(1);
+        const message = err instanceof Error ? err.message : String(err);
+        const isPythonInfraError =
+          message.includes("Python interpreter not found") ||
+          message.includes("spawn python") ||
+          message.includes("ENOENT") ||
+          message.includes("[runner]");
+
+        if (isPythonInfraError) {
+          appendEntry({
+            kind: "system",
+            text: "[fallback] Server Python unavailable, running in browser with Pyodide...",
+          });
+          try {
+            const result = await runPythonInBrowser(files, entry);
+            activeRunIdRef.current = null;
+            if (result.stdout) {
+              appendEntry({
+                kind: "stdout",
+                text: result.stdout.replace(/\n$/, ""),
+              });
+            }
+            if (result.stderr) {
+              appendEntry({
+                kind: "stderr",
+                text: result.stderr.replace(/\n$/, ""),
+              });
+            }
+            if (result.truncated) {
+              appendEntry({
+                kind: "system",
+                text: "[output truncated: limit reached]",
+              });
+            }
+            setStatus(result.status);
+            setExitCode(result.exitCode);
+            setExecutionTime(result.executionTime);
+          } catch (pyErr) {
+            appendEntry({
+              kind: "stderr",
+              text: `Error: ${pyErr instanceof Error ? pyErr.message : String(pyErr)}`,
+            });
+            setStatus("error");
+            setExitCode(1);
+          }
+        } else {
+          appendEntry({
+            kind: "stderr",
+            text: `Error: ${message}`,
+          });
+          setStatus("error");
+          setExitCode(1);
+        }
       }
     } finally {
       setRunning(false);
@@ -261,88 +365,72 @@ const controller = new AbortController();
     setExecutionTime(null);
   }, []);
 
-  const selectFile = useCallback(
-    (name: string) => {
-      setProject((p) => ({ ...p, activeFile: name }));
-      setMobileExplorerOpen(false);
-    },
-    [],
-  );
+  const selectFile = useCallback((name: string) => {
+    setProject((p) => ({ ...p, activeFile: name }));
+    setMobileExplorerOpen(false);
+  }, []);
 
-  const openTab = useCallback(
-    (name: string) => {
-      setProject((p) => {
-        if (p.openTabs.includes(name)) return p;
-        return { ...p, openTabs: [...p.openTabs, name] };
-      });
-    },
-    [],
-  );
+  const openTab = useCallback((name: string) => {
+    setProject((p) => {
+      if (p.openTabs.includes(name)) return p;
+      return { ...p, openTabs: [...p.openTabs, name] };
+    });
+  }, []);
 
-  const closeTab = useCallback(
-    (name: string) => {
-      setProject((p) => {
-        const tabs = p.openTabs.filter((t) => t !== name);
-        const next: PersistedProject = {
-          ...p,
-          openTabs: tabs,
-        };
-        if (p.activeFile === name) {
-          next.activeFile = tabs[tabs.length - 1] ?? Object.keys(p.files)[0] ?? "";
-        }
-        return next;
-      });
-    },
-    [],
-  );
-
-  const createFile = useCallback(
-    (name: string) => {
-      setProject((p) => ({
+  const closeTab = useCallback((name: string) => {
+    setProject((p) => {
+      const tabs = p.openTabs.filter((t) => t !== name);
+      const next: PersistedProject = {
         ...p,
-        files: { ...p.files, [name]: "" },
-        openTabs: p.openTabs.includes(name) ? p.openTabs : [...p.openTabs, name],
-        activeFile: name,
-      }));
-    },
-    [],
-  );
+        openTabs: tabs,
+      };
+      if (p.activeFile === name) {
+        next.activeFile =
+          tabs[tabs.length - 1] ?? Object.keys(p.files)[0] ?? "";
+      }
+      return next;
+    });
+  }, []);
 
-  const renameFile = useCallback(
-    (oldName: string, newName: string) => {
-      setProject((p) => {
-        const files: Record<string, string> = {};
-        for (const [k, v] of Object.entries(p.files)) {
-          files[k === oldName ? newName : k] = v;
-        }
-        return {
-          ...p,
-          files,
-          activeFile: p.activeFile === oldName ? newName : p.activeFile,
-          openTabs: p.openTabs.map((t) => (t === oldName ? newName : t)),
-        };
-      });
-    },
-    [],
-  );
+  const createFile = useCallback((name: string) => {
+    setProject((p) => ({
+      ...p,
+      files: { ...p.files, [name]: "" },
+      openTabs: p.openTabs.includes(name) ? p.openTabs : [...p.openTabs, name],
+      activeFile: name,
+    }));
+  }, []);
 
-  const deleteFile = useCallback(
-    (name: string) => {
-      setProject((p) => {
-        const files: Record<string, string> = {};
-        for (const [k, v] of Object.entries(p.files)) {
-          if (k !== name) files[k] = v;
-        }
-        const openTabs = p.openTabs.filter((t) => t !== name);
-        let activeFile = p.activeFile;
-        if (activeFile === name) {
-          activeFile = openTabs[openTabs.length - 1] ?? Object.keys(files)[0] ?? "";
-        }
-        return { ...p, files, openTabs, activeFile };
-      });
-    },
-    [],
-  );
+  const renameFile = useCallback((oldName: string, newName: string) => {
+    setProject((p) => {
+      const files: Record<string, string> = {};
+      for (const [k, v] of Object.entries(p.files)) {
+        files[k === oldName ? newName : k] = v;
+      }
+      return {
+        ...p,
+        files,
+        activeFile: p.activeFile === oldName ? newName : p.activeFile,
+        openTabs: p.openTabs.map((t) => (t === oldName ? newName : t)),
+      };
+    });
+  }, []);
+
+  const deleteFile = useCallback((name: string) => {
+    setProject((p) => {
+      const files: Record<string, string> = {};
+      for (const [k, v] of Object.entries(p.files)) {
+        if (k !== name) files[k] = v;
+      }
+      const openTabs = p.openTabs.filter((t) => t !== name);
+      let activeFile = p.activeFile;
+      if (activeFile === name) {
+        activeFile =
+          openTabs[openTabs.length - 1] ?? Object.keys(files)[0] ?? "";
+      }
+      return { ...p, files, openTabs, activeFile };
+    });
+  }, []);
 
   const quickOpenFile = useCallback(
     (name: string) => {
@@ -354,7 +442,10 @@ const controller = new AbortController();
     [selectFile, openTab],
   );
 
-const fileNames = useMemo(() => Object.keys(project.files).sort(), [project.files]);
+  const fileNames = useMemo(
+    () => Object.keys(project.files).sort(),
+    [project.files],
+  );
 
   const quickMatches = useMemo(() => {
     if (!quickFilter) return fileNames;
@@ -376,12 +467,19 @@ const fileNames = useMemo(() => Object.keys(project.files).sort(), [project.file
         onSave={handleSave}
       />
     ),
-    [activeFile, activeContent, project.theme, handleValueChange, runCode, handleSave],
+    [
+      activeFile,
+      activeContent,
+      project.theme,
+      handleValueChange,
+      runCode,
+      handleSave,
+    ],
   );
 
   return (
     <div className="flex h-screen w-full flex-col overflow-hidden bg-[#0B0F14] text-slate-200">
-<Toolbar
+      <Toolbar
         projectName="my-project"
         running={running}
         status={status}
@@ -402,7 +500,7 @@ const fileNames = useMemo(() => Object.keys(project.files).sort(), [project.file
         onToggleMobileTerminal={() => setMobileTerminalOpen((o) => !o)}
       />
 
-{/* Desktop layout */}
+      {/* Desktop layout */}
       <div className="hidden flex-1 min-h-0 md:flex">
         <Group className="flex w-full" orientation="horizontal">
           <Panel
@@ -471,7 +569,7 @@ const fileNames = useMemo(() => Object.keys(project.files).sort(), [project.file
         </Group>
       </div>
 
-{/* Mobile layout */}
+      {/* Mobile layout */}
       <div className="flex min-h-0 flex-1 flex-col md:hidden">
         <EditorTabs
           tabs={project.openTabs}
