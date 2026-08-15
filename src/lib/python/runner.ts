@@ -257,11 +257,11 @@ export async function runPython(
       let killed = false;
       let timedOut = false;
 
-      // Platform-safe shell invocation to prevent path mangling
+      // Platform-safe execution using cmd.exe on Windows to guarantee launch success
       const isWin = platform() === "win32";
       const proc = spawn(
         isWin ? "cmd.exe" : pythonBin,
-        isWin ? ["/c", pythonBin, entryPath] : [entryPath],
+        isWin ? ["/c", `"${pythonBin}"`, `"${entryPath}"`] : [entryPath],
         {
           cwd: dir,
           env: sanitizeEnv(),
