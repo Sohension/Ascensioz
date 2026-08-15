@@ -505,9 +505,9 @@ export default function PythonIDE() {
         <Group className="flex w-full" orientation="horizontal">
           <Panel
             id="explorer"
-            defaultSize={92}
+            defaultSize={292}
             minSize={15}
-            maxSize={62}
+            maxSize={162}
             collapsedSize={0}
             collapsible
             panelRef={explorerPanelRef}
