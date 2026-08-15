@@ -367,28 +367,28 @@ const fileNames = useMemo(() => Object.keys(project.files).sort(), [project.file
 {/* Desktop layout */}
       <div className="hidden flex-1 min-h-0 md:flex">
         <Group className="flex w-full" orientation="horizontal">
+          <Panel
+            defaultSize={18}
+            minSize={12}
+            maxSize={35}
+            collapsedSize={0}
+            collapsed={!project.explorerOpen}
+            className="flex min-h-0 min-w-0"
+          >
+            <FileExplorer
+              files={project.files}
+              activeFile={activeFile}
+              onSelect={(name) => {
+                selectFile(name);
+                openTab(name);
+              }}
+              onCreateFile={createFile}
+              onRenameFile={renameFile}
+              onDeleteFile={deleteFile}
+            />
+          </Panel>
           {project.explorerOpen && (
-            <>
-              <Panel
-                defaultSize={18}
-                minSize={12}
-                maxSize={35}
-                className="flex min-h-0 min-w-0"
-              >
-                <FileExplorer
-                  files={project.files}
-                  activeFile={activeFile}
-                  onSelect={(name) => {
-                    selectFile(name);
-                    openTab(name);
-                  }}
-                  onCreateFile={createFile}
-                  onRenameFile={renameFile}
-                  onDeleteFile={deleteFile}
-                />
-              </Panel>
-              <Separator className="w-1 bg-[#1A2230] transition-colors hover:bg-sky-600/50" />
-            </>
+            <Separator className="w-1 bg-[#1A2230] transition-colors hover:bg-sky-600/50" />
           )}
           <Panel minSize={40} className="flex min-h-0 min-w-0">
             <Group className="flex w-full flex-1" orientation="vertical">

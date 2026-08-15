@@ -99,9 +99,19 @@ async function resolvePython(): Promise<string> {
   }
 
   // 3. Resolve the on-PATH interpreter to an absolute path and verify it.
-  const where = await probeCommand("where.exe", ["python"]);
-  const which = !where ? await probeCommand("which", ["python"]) : null;
-  const resolved = where ?? which;
+  const wherePython = await probeCommand("where.exe", ["python"]);
+  const wherePython3 = !wherePython
+    ? await probeCommand("where.exe", ["python3"])
+    : null;
+  const whichPython = !wherePython && !wherePython3
+    ? await probeCommand("which", ["python"])
+    : null;
+  const whichPython3 =
+    !wherePython && !wherePython3 && !whichPython
+      ? await probeCommand("which", ["python3"])
+      : null;
+  const resolved =
+    wherePython ?? wherePython3 ?? whichPython ?? whichPython3;
   if (resolved && (await probeExecutable(resolved))) return resolved;
 
 // 4. Probe well-known install directories (incl. Store alias dir) and the
@@ -118,7 +128,7 @@ async function resolvePython(): Promise<string> {
     /* some dirs may not exist — ignore */
   }
   for (const dir of candidateDirs) {
-    for (const name of ["python.exe", "python3.exe"]) {
+    for (const name of ["python.exe", "python3.exe", "python", "python3"]) {
       const candidate = join(dir, name);
       if (await probeExecutable(candidate)) return candidate;
     }
@@ -146,8 +156,13 @@ async function resolvePython(): Promise<string> {
     /* directory not accessible — ignore */
   }
 
-  // 6. Last resort: let spawn resolve the bare command.
-  return "python";
+  // 6. Last resort: let spawn resolve the bare command, but verify it first.
+  if (await probeExecutable("python")) return "python";
+  if (await probeExecutable("python3")) return "python3";
+
+  throw new Error(
+    "Python interpreter not found. Install Python from python.org and ensure it is on PATH, or set the PYTHON_BIN / PYTHON environment variable to the interpreter path.",
+  );
 }
 
 async function getPython(): Promise<string> {
