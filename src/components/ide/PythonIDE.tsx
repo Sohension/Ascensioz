@@ -2,7 +2,7 @@
 
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import dynamic from "next/dynamic";
-import { Group, Panel, Separator } from "react-resizable-panels";
+import { Group, Panel, Separator, type PanelImperativeHandle } from "react-resizable-panels";
 import type { RunnerStatus } from "@/lib/python/types";
 import {
   loadProject,
@@ -45,6 +45,7 @@ const [cursor, setCursor] = useState({ line: 1, col: 1 });
   const activeRunIdRef = useRef<string | null>(null);
   const abortRef = useRef<AbortController | null>(null);
   const saveTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const explorerPanelRef = useRef<PanelImperativeHandle>(null);
 
   // Debounced persistence
   useEffect(() => {
@@ -56,6 +57,11 @@ const [cursor, setCursor] = useState({ line: 1, col: 1 });
       if (saveTimer.current) clearTimeout(saveTimer.current);
     };
   }, [project]);
+
+  // Collapse / expand explorer panel via imperative API
+  useEffect(() => {
+    explorerPanelRef.current?.[project.explorerOpen ? "expand" : "collapse"]();
+  }, [project.explorerOpen]);
 
   // Global keyboard shortcuts
   useEffect(() => {
@@ -368,11 +374,13 @@ const fileNames = useMemo(() => Object.keys(project.files).sort(), [project.file
       <div className="hidden flex-1 min-h-0 md:flex">
         <Group className="flex w-full" orientation="horizontal">
           <Panel
+            id="explorer"
             defaultSize={18}
             minSize={12}
             maxSize={35}
             collapsedSize={0}
-            collapsed={!project.explorerOpen}
+            collapsible
+            panelRef={explorerPanelRef}
             className="flex min-h-0 min-w-0"
           >
             <FileExplorer
@@ -387,9 +395,7 @@ const fileNames = useMemo(() => Object.keys(project.files).sort(), [project.file
               onDeleteFile={deleteFile}
             />
           </Panel>
-          {project.explorerOpen && (
-            <Separator className="w-1 bg-[#1A2230] transition-colors hover:bg-sky-600/50" />
-          )}
+          <Separator className="w-1 bg-[#1A2230] transition-colors hover:bg-sky-600/50" />
           <Panel minSize={40} className="flex min-h-0 min-w-0">
             <Group className="flex w-full flex-1" orientation="vertical">
               <Panel
