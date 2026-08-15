@@ -16,6 +16,7 @@ import EditorTabs from "./EditorTabs";
 import FileExplorer from "./FileExplorer";
 import Terminal, { type TerminalEntry } from "./Terminal";
 import StatusBar from "./StatusBar";
+import { runPythonInBrowser } from "@/lib/python/pyodide-runner";
 
 const CodeEditor = dynamic(() => import("./Editor"), {
   ssr: false,
@@ -184,6 +185,37 @@ const controller = new AbortController();
       if (controller.signal.aborted) {
         appendEntry({ kind: "system", text: "Run cancelled." });
         setStatus("stopped");
+      } else if (
+        err instanceof Error &&
+        err.message.includes("Python interpreter not found")
+      ) {
+        appendEntry({
+          kind: "system",
+          text: "[fallback] Server Python not found, running in browser with Pyodide...",
+        });
+        try {
+          const result = await runPythonInBrowser(files, entry);
+          activeRunIdRef.current = null;
+          if (result.stdout) {
+            appendEntry({ kind: "stdout", text: result.stdout.replace(/\n$/, "") });
+          }
+          if (result.stderr) {
+            appendEntry({ kind: "stderr", text: result.stderr.replace(/\n$/, "") });
+          }
+          if (result.truncated) {
+            appendEntry({ kind: "system", text: "[output truncated: limit reached]" });
+          }
+          setStatus(result.status);
+          setExitCode(result.exitCode);
+          setExecutionTime(result.executionTime);
+        } catch (pyErr) {
+          appendEntry({
+            kind: "stderr",
+            text: `Error: ${pyErr instanceof Error ? pyErr.message : String(pyErr)}`,
+          });
+          setStatus("error");
+          setExitCode(1);
+        }
       } else {
         appendEntry({
           kind: "stderr",
