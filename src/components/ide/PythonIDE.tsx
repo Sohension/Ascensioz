@@ -505,9 +505,9 @@ export default function PythonIDE() {
         <Group className="flex w-full" orientation="horizontal">
           <Panel
             id="explorer"
-            defaultSize={18}
-            minSize={12}
-            maxSize={35}
+            defaultSize={22}
+            minSize={15}
+            maxSize={50}
             collapsedSize={0}
             collapsible
             panelRef={explorerPanelRef}
@@ -529,8 +529,8 @@ export default function PythonIDE() {
           <Panel minSize={40} className="flex min-h-0 min-w-0">
             <Group className="flex w-full flex-1" orientation="vertical">
               <Panel
-                defaultSize={65}
-                minSize={30}
+                defaultSize={105}
+                minSize={70}
                 className="flex min-h-0 min-w-0"
               >
                 <div className="flex h-full w-full flex-col bg-[#0B0F14]">
@@ -627,7 +627,7 @@ export default function PythonIDE() {
           onClick={() => setMobileExplorerOpen(false)}
         >
           <div
-            className="h-full w-64 border-r border-[#1A2230] bg-[#0B0F14]"
+            className="h-full w-72 border-r border-[#1A2230] bg-[#0B0F14]"
             onClick={(e) => e.stopPropagation()}
           >
             <FileExplorer
