@@ -32,7 +32,14 @@ export async function POST(req: Request) {
       ? Math.min(Math.max(Math.floor(timeoutMs), 1000), 30_000)
       : DEFAULT_TIMEOUT_MS;
 
-  const result = await runPython({ files, entry, runId }, safeTimeout);
-
-  return NextResponse.json(result);
+  try {
+    const result = await runPython({ files, entry, runId }, safeTimeout);
+    return NextResponse.json(result);
+  } catch (err) {
+    const message = err instanceof Error ? err.message : String(err);
+    return NextResponse.json(
+      { error: message, status: "error" },
+      { status: 500 },
+    );
+  }
 }
