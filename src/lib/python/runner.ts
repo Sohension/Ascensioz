@@ -299,7 +299,7 @@ export async function runPython(
       const proc = spawn(pythonBin, [entryPath], {
         cwd: dir,
         env: sanitizeEnv(),
-        shell: false,
+        shell: true,
         windowsHide: true,
         stdio: ["ignore", "pipe", "pipe"],
       });
