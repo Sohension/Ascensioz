@@ -1,7 +1,8 @@
 import type { Metadata } from "next";
 import { Geist_Mono, Rajdhani, Montserrat } from "next/font/google";
 import Script from "next/script";
-import { ThemeProvider } from "next-themes";
+import { ThemeProvider as NextThemesProvider } from "next-themes";
+import { ThemeProvider } from "@/context/ThemeContext";
 import "./globals.css";
 import NavWrapper from "./NavWrapper";
 import GlobalAudio from "@/components/GlobalAudio";
@@ -48,15 +49,17 @@ export default function RootLayout({
       <body
         className={`${rajdhani.variable} ${montserrat.variable} ${geistMono.variable} antialiased bg-background text-foreground`}
       >
-        <ThemeProvider
+        <NextThemesProvider
           attribute="class"
           defaultTheme="light"
           enableSystem={false}
           disableTransitionOnChange
         >
-          <NavWrapper>{children}</NavWrapper>
-          <GlobalAudio />
-        </ThemeProvider>
+          <ThemeProvider>
+            <NavWrapper>{children}</NavWrapper>
+            <GlobalAudio />
+          </ThemeProvider>
+        </NextThemesProvider>
       </body>
     </html>
   );
