@@ -87,14 +87,20 @@ async function resolvePython(): Promise<string> {
   // points that `fs.access` reports as missing even though `spawn` runs them.
 
   // 1. Explicit override.
+  // 1. Explicit override.
+  // 1. Explicit override (skip probing to force the exact path)
   for (const key of ["PYTHON_BIN", "PYTHON"]) {
     const override = process.env[key];
-    if (override && (await probeExecutable(override))) return override;
+    if (override) return override;
   }
 
   // 2. Windows `py` launcher — most reliable for Store installs.
   if (platform() === "win32") {
-    const py = await probeCommand("py", ["-3", "-c", "import sys;print(sys.executable)"]);
+    const py = await probeCommand("py", [
+      "-3",
+      "-c",
+      "import sys;print(sys.executable)",
+    ]);
     if (py && (await probeExecutable(py))) return py;
   }
 
@@ -103,18 +109,18 @@ async function resolvePython(): Promise<string> {
   const wherePython3 = !wherePython
     ? await probeCommand("where.exe", ["python3"])
     : null;
-  const whichPython = !wherePython && !wherePython3
-    ? await probeCommand("which", ["python"])
-    : null;
+  const whichPython =
+    !wherePython && !wherePython3
+      ? await probeCommand("which", ["python"])
+      : null;
   const whichPython3 =
     !wherePython && !wherePython3 && !whichPython
       ? await probeCommand("which", ["python3"])
       : null;
-  const resolved =
-    wherePython ?? wherePython3 ?? whichPython ?? whichPython3;
+  const resolved = wherePython ?? wherePython3 ?? whichPython ?? whichPython3;
   if (resolved && (await probeExecutable(resolved))) return resolved;
 
-// 4. Probe well-known install directories (incl. Store alias dir) and the
+  // 4. Probe well-known install directories (incl. Store alias dir) and the
   //    versioned subdirectories python.org installs into (e.g. Python313).
   const candidateDirs = [...PYTHON_CANDIDATE_DIRS];
   try {
