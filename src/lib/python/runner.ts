@@ -1,6 +1,6 @@
 import { spawn, execFile, type ChildProcess } from "node:child_process";
 import { randomUUID } from "node:crypto";
-import { mkdtemp, writeFile, rm, mkdir, readdir } from "node:fs/promises";
+import { mkdtemp, writeFile, rm, mkdir } from "node:fs/promises";
 import { tmpdir, platform, homedir } from "node:os";
 import { join } from "node:path";
 import type { PythonRunRequest, PythonRunResult, RunnerStatus } from "./types";
@@ -10,50 +10,11 @@ const MAX_SOURCE_BYTES = 256 * 1024; // 256 KB
 const MAX_OUTPUT_BYTES = 1 * 1024 * 1024; // 1 MB
 const MAX_FILES = 50;
 
-const PYTHON_CANDIDATE_DIRS = [
-  join(process.env.LOCALAPPDATA ?? "", "Microsoft", "WindowsApps"),
-  join(process.env.ProgramFiles ?? "C:\\Program Files", "Python"),
-  join(process.env["ProgramFiles(x86)"] ?? "C:\\Program Files (x86)", "Python"),
-  join(homedir(), "AppData", "Local", "Programs", "Python"),
-];
-
 let cachedPython: string | undefined;
-
-function probeExecutable(p: string): Promise<boolean> {
-  return new Promise((resolve) => {
-    const child = spawn(p, ["-c", "import sys;sys.stdout.write('ok')"], {
-      stdio: ["ignore", "pipe", "pipe"],
-      windowsHide: true,
-    });
-    let out = "";
-    child.stdout?.on("data", (d: Buffer) => (out += d.toString()));
-    child.on("error", () => resolve(false));
-    child.on("close", (code) => {
-      resolve(code === 0 && out.includes("ok"));
-    });
-  });
-}
 
 async function resolvePython(): Promise<string> {
   // --- FINAL HARDCODED PATH FOR YOUR MACHINE ---
   return "C:\\Users\\Bucher\\AppData\\Local\\Python\\bin\\python.exe";
-}
-
-async function probeCommand(
-  cmd: string,
-  args: string[],
-): Promise<string | null> {
-  return new Promise((resolve) => {
-    execFile(cmd, args, { timeout: 5000, windowsHide: true }, (err, stdout) => {
-      if (err) {
-        resolve(null);
-        return;
-      }
-      const line = String(stdout).trim().split(/\r?\n/)[0]?.trim();
-      if (line) resolve(line);
-      else resolve(null);
-    });
-  });
 }
 
 async function getPython(): Promise<string> {
@@ -296,13 +257,19 @@ export async function runPython(
       let killed = false;
       let timedOut = false;
 
-      const proc = spawn(pythonBin, [entryPath], {
-        cwd: dir,
-        env: sanitizeEnv(),
-        shell: true,
-        windowsHide: true,
-        stdio: ["ignore", "pipe", "pipe"],
-      });
+      // Platform-safe shell invocation to prevent path mangling
+      const isWin = platform() === "win32";
+      const proc = spawn(
+        isWin ? "cmd.exe" : pythonBin,
+        isWin ? ["/c", pythonBin, entryPath] : [entryPath],
+        {
+          cwd: dir,
+          env: sanitizeEnv(),
+          shell: false,
+          windowsHide: true,
+          stdio: ["ignore", "pipe", "pipe"],
+        },
+      );
 
       const timer = setTimeout(() => {
         killed = true;
