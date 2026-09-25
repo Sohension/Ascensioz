@@ -87,10 +87,34 @@ export interface ThemeTokens {
   secondary: string;
   accent: string;
   border: string;
+  input: string;
+  ring: string;
   radiusCard: string;
   radiusButton: string;
+  radiusInput: string;
+  radiusPill: string;
+  borderWidth: string;
+  borderStyle: string;
   fontBody: string;
   fontHeading: string;
+  fontButton: string;
+  letterSpacing: string;
+  headingWeight: string;
+  textTransform: string;
+  buttonHeight: string;
+  cardPadding: string;
+  density: string;
+  visualStyle: string;
+  cardStyle: string;
+  buttonStyle: string;
+  borderStyleMode: string;
+  motion: string;
+  effectGlow: string;
+  blur: string;
+  backdropOpacity: string;
+  gradient?: string;
+  backgroundPattern?: string;
+  texture?: string;
   shadowCard: string;
   shadowButton: string;
 }
@@ -131,10 +155,31 @@ const baseTokens: ThemeTokens = {
   secondary: "#64748b",
   accent: "#8b5cf6",
   border: "#27272a",
+  input: "#27272a",
+  ring: "#3b82f6",
   radiusCard: "12px",
   radiusButton: "8px",
+  radiusInput: "8px",
+  radiusPill: "9999px",
+  borderWidth: "1px",
+  borderStyle: "solid",
   fontBody: FONT.inter,
   fontHeading: FONT.spaceGrotesk,
+  fontButton: FONT.inter,
+  letterSpacing: "0",
+  headingWeight: "700",
+  textTransform: "none",
+  buttonHeight: "2.5rem",
+  cardPadding: "1rem",
+  density: "comfortable",
+  visualStyle: "default",
+  cardStyle: "elevated",
+  buttonStyle: "solid",
+  borderStyleMode: "subtle",
+  motion: "standard",
+  effectGlow: "none",
+  blur: "0px",
+  backdropOpacity: "1",
   shadowCard:
     "0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -2px rgba(0, 0, 0, 0.1)",
   shadowButton: "0 1px 2px 0 rgba(0, 0, 0, 0.05)",
@@ -286,6 +331,8 @@ export const THEMES: ThemeConfig[] = rawThemes.map((theme) => ({
   ...theme,
   price: THEME_RARITY_PRICES[theme.rarity],
 }));
+
+export const THEMES_CATALOG = THEMES;
 
 export const DEFAULT_THEME_ID = "default-dark";
 

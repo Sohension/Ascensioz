@@ -17,7 +17,7 @@ function fullscreenGame() {
   if (iframe?.requestFullscreen) {
     void iframe.requestFullscreen().then(() => {
       const orientation = window.screen.orientation as ScreenOrientation & {
-        lock?: (mode: OrientationLockType) => Promise<void>;
+        lock?: (mode: "landscape") => Promise<void>;
       };
 
       void orientation.lock?.("landscape").catch(() => undefined);

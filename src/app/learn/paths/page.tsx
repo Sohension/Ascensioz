@@ -10,6 +10,7 @@ const rajdhani = Rajdhani({
 const montserrat = Montserrat({
   subsets: ["latin"],
   weight: ["400", "500", "600", "700"],
+  display: "swap",
 });
 
 export default function Paths() {
