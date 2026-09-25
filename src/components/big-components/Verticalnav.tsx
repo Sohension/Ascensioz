@@ -3,7 +3,6 @@
 import Link from "next/link";
 import { Rajdhani } from "next/font/google";
 import { Home, BookOpen, PenTool, CreditCard } from "lucide-react";
-import { AnimatedThemeToggler } from "@/components/ui/animated-theme-toggler";
 
 const rajdhani = Rajdhani({
   subsets: ["latin"],
@@ -42,10 +41,6 @@ export default function Verticalnav() {
             </Link>
           );
         })}
-        <AnimatedThemeToggler
-          className="inline-flex h-10 w-10 items-center justify-center rounded-full border border-border bg-background transition-colors hover:bg-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
-          aria-label="Switch between light and dark theme"
-        />
       </div>
     </nav>
   );

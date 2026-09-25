@@ -1,16 +1,14 @@
 "use client";
 
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, useCallback } from "react";
 import Link from "next/link";
 import Image from "next/image";
 import { Rajdhani } from "next/font/google";
 import { createClient } from "@/lib/client";
 import { useRouter } from "next/navigation";
 import type { User } from "@supabase/supabase-js";
-import { AnimatedThemeToggler } from "@/components/ui/animated-theme-toggler";
 import { Progress } from "@/components/ui/progress";
-import { useTheme } from "@/context/ThemeContext";
-import { THEMES_CATALOG } from "@/config/themes";
+import { toast } from "sonner";
 
 const rajdhani = Rajdhani({
   subsets: ["latin"],
@@ -49,15 +47,10 @@ export default function Navbar() {
   const [stats, setStats] = useState<Stats | null>(null);
 
   const router = useRouter();
-  const { equippedThemeId, ownedThemeIds, equipTheme } = useTheme();
 
-  const [toastVisible, setToastVisible] = useState(false);
-  const [toastMounted, setToastMounted] = useState(false);
-  const hideTimer = useRef<NodeJS.Timeout | null>(null);
-  const unmountTimer = useRef<NodeJS.Timeout | null>(null);
   const profileRef = useRef<HTMLDivElement | null>(null);
 
-  /* ---------------- FETCH DATA ---------------- */
+  /* ---------------- FETCH DATA & CLEANUP ---------------- */
   useEffect(() => {
     const supabase = createClient();
 
@@ -84,7 +77,6 @@ export default function Navbar() {
 
     loadData();
 
-    // Close profile dropdown when clicking outside
     const handleClickOutside = (event: MouseEvent) => {
       if (
         profileRef.current &&
@@ -94,32 +86,21 @@ export default function Navbar() {
       }
     };
     document.addEventListener("mousedown", handleClickOutside);
-    return () => document.removeEventListener("mousedown", handleClickOutside);
+
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+    };
   }, []);
 
   /* ---------------- TOAST ---------------- */
-  const showComingSoon = (e: React.MouseEvent) => {
+  const showComingSoon = useCallback((e: React.MouseEvent) => {
     e.preventDefault();
-
-    if (hideTimer.current) clearTimeout(hideTimer.current);
-    if (unmountTimer.current) clearTimeout(unmountTimer.current);
-
-    setToastMounted(true);
-
-    requestAnimationFrame(() => {
-      setToastVisible(true);
+    toast("Coming soon", {
+      description: "Events will be available in a future update.",
     });
+  }, []);
 
-    hideTimer.current = setTimeout(() => {
-      setToastVisible(false);
-    }, 2000);
-
-    unmountTimer.current = setTimeout(() => {
-      setToastMounted(false);
-    }, 2300);
-  };
-
-  /* ---------------- AVATAR RESOLVER ---------------- */
+  /* ---------------- COMPUTED PROPS ---------------- */
   const avatar =
     user?.user_metadata?.avatar_url ||
     user?.user_metadata?.picture ||
@@ -139,27 +120,21 @@ export default function Navbar() {
 
   const navLinks: NavItem[] = [
     { name: "Home", href: "/dashboard" },
-    {
-      name: "Learn",
-      children: [{ name: "Paths", href: "/learn/paths" }],
-    },
-    {
-      name: "Practice",
-      children: [{ name: "Problems", href: "/practice" }],
-    },
+    { name: "Learn", children: [{ name: "Paths", href: "/learn/paths" }] },
+    { name: "Practice", children: [{ name: "Problems", href: "/practice" }] },
     {
       name: "Community",
-      children: [{ name: "Blog", href: "/community/blog" }],
+      children: [
+        { name: "Overview", href: "/community" },
+        { name: "Blog", href: "/community/blog" },
+        { name: "Leaderboard", href: "/leaderboards" },
+      ],
     },
     { name: "Friends", href: "/friends" },
     { name: "IDE", href: "/ide" },
-    { name: "Theme Shop", href: "/theme-shop" },
+    { name: "Shop", href: "/shop" },
     { name: "Events", href: "/events", comingSoon: true },
   ];
-
-  const availableThemes = THEMES_CATALOG.filter(
-    (t) => ownedThemeIds.includes(t.id) || t.id === "default",
-  );
 
   const handleSignOut = async () => {
     const supabase = createClient();
@@ -173,9 +148,9 @@ export default function Navbar() {
     <nav
       className={`w-full ${rajdhani.className} z-50 relative bg-[var(--color-surface)]/80 backdrop-blur-3xl border-b border-[var(--color-border)] shadow-[0_8px_32px_0_rgba(0,0,0,0.1)] transition-colors duration-300`}
     >
-      <div className="max-w-7xl mx-auto px-4">
-        <div className="flex justify-between items-center h-16">
-          {/* Logo / Brand */}
+      <div className="mx-auto max-w-7xl px-3 sm:px-4">
+        <div className="flex min-h-16 items-center justify-between gap-3 py-2">
+          {/* Logo */}
           <Link
             href="/dashboard"
             className="flex items-center gap-2 transition-all duration-200 hover:opacity-80"
@@ -183,7 +158,7 @@ export default function Navbar() {
             <div className="relative w-8 h-8">
               <Image
                 src="/icon.svg"
-                alt="Ascension Icon"
+                alt="Ascensioz Icon"
                 fill
                 sizes="32px"
                 className="object-contain"
@@ -193,10 +168,9 @@ export default function Navbar() {
           </Link>
 
           {/* Desktop Links */}
-          <div className="hidden md:flex items-center space-x-6">
+          <div className="hidden flex-1 items-center justify-center gap-3 lg:flex xl:gap-5">
             {navLinks.map((link) => {
               const hasDropdown = Boolean(link.children);
-
               return (
                 <div
                   key={link.name}
@@ -225,7 +199,6 @@ export default function Navbar() {
                     </span>
                   )}
 
-                  {/* Dropdown Menu */}
                   {hasDropdown && (
                     <div
                       className={`absolute left-0 top-full pt-1 w-48 transition-all duration-200 ease-in-out z-50 ${
@@ -234,12 +207,12 @@ export default function Navbar() {
                           : "opacity-0 -translate-y-2 invisible"
                       }`}
                     >
-                      <div className="rounded-xl shadow-xl bg-[var(--color-surface)] backdrop-blur-3xl border border-[var(--color-border)] flex flex-col p-2">
+                      <div className="theme-card-surface bg-[var(--color-surface)] backdrop-blur-3xl border border-[var(--color-border)] flex flex-col p-2">
                         {link.children?.map((child) => (
                           <Link
                             key={child.name}
                             href={child.href}
-                            className="px-3 py-2 rounded-md transition-colors duration-200 hover:bg-[var(--color-background)] text-[var(--color-text)] text-sm"
+                            className="theme-button-surface px-3 py-2 transition-colors duration-200 hover:bg-[var(--color-background)] text-[var(--color-text)] text-sm"
                           >
                             {child.name}
                           </Link>
@@ -253,34 +226,9 @@ export default function Navbar() {
           </div>
 
           {/* Right Section */}
-          <div className="flex items-center gap-3">
-            {/* Theme Switcher Dropdown */}
-            <select
-              value={equippedThemeId}
-              onChange={(e) => equipTheme(e.target.value)}
-              aria-label="Select theme"
-              className="hidden lg:block bg-[var(--color-surface)] text-[var(--color-text)] border border-[var(--color-border)] px-2.5 py-1.5 rounded-lg text-xs font-semibold cursor-pointer outline-none focus:ring-1 focus:ring-[var(--color-primary)]"
-            >
-              {availableThemes.map((theme) => (
-                <option
-                  key={theme.id}
-                  value={theme.id}
-                  className="bg-[var(--color-surface)] text-[var(--color-text)]"
-                >
-                  🎨 {theme.name}
-                </option>
-              ))}
-            </select>
-
-            {/* Dark/Light Mode Toggler */}
-            <AnimatedThemeToggler
-              className="inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-full border border-[var(--color-border)] bg-[var(--color-surface)] transition-colors hover:opacity-80 focus-visible:outline-none"
-              aria-label="Toggle theme mode"
-            />
-
-            {/* Level / XP Progress Widget */}
+          <div className="flex shrink-0 items-center gap-2 sm:gap-3">
             {stats && (
-              <div className="hidden xl:flex items-center gap-2 rounded-xl border border-[var(--color-border)] bg-[var(--color-surface)] px-3 py-2 text-[var(--color-text)]">
+              <div className="theme-card-surface hidden xl:flex items-center gap-2 border border-[var(--color-border)] bg-[var(--color-surface)] px-3 py-2 text-[var(--color-text)]">
                 <div className="w-36">
                   <div className="mb-1 flex items-center justify-between text-[9px] font-black uppercase tracking-[0.2em] text-[var(--color-muted)]">
                     <span>Lv {level}</span>
@@ -297,9 +245,8 @@ export default function Navbar() {
               </div>
             )}
 
-            {/* Currencies (Coins & Ascenzy) */}
             {stats && (
-              <div className="flex items-center gap-2 font-bold text-sm">
+              <div className="hidden items-center gap-2 text-sm font-bold sm:flex">
                 <span
                   className="cursor-pointer transition-transform duration-200 hover:scale-105"
                   title="Coins"
@@ -315,7 +262,7 @@ export default function Navbar() {
               </div>
             )}
 
-            {/* Profile Avatar & Dropdown */}
+            {/* Profile Menu */}
             <div
               ref={profileRef}
               className="relative py-2"
@@ -343,9 +290,8 @@ export default function Navbar() {
                 )}
               </button>
 
-              {/* Profile Dropdown Menu */}
               <div
-                className={`absolute right-0 top-full mt-1 w-44 rounded-xl shadow-xl bg-[var(--color-surface)] backdrop-blur-3xl border border-[var(--color-border)] transition-all duration-200 ease-in-out z-50 ${
+                className={`theme-card-surface absolute right-0 top-full mt-1 w-44 bg-[var(--color-surface)] backdrop-blur-3xl border border-[var(--color-border)] transition-all duration-200 ease-in-out z-50 ${
                   isProfileOpen
                     ? "opacity-100 translate-y-0 visible"
                     : "opacity-0 -translate-y-2 invisible"
@@ -357,18 +303,16 @@ export default function Navbar() {
                       <div className="px-3 py-1.5 text-xs text-[var(--color-muted)] border-b border-[var(--color-border)] mb-1 truncate">
                         {user.email}
                       </div>
-
                       <Link
                         href="/profile"
                         onClick={() => setIsProfileOpen(false)}
-                        className="px-3 py-2 rounded-lg transition-colors duration-200 hover:bg-[var(--color-background)] text-[var(--color-text)]"
+                        className="theme-button-surface px-3 py-2 transition-colors duration-200 hover:bg-[var(--color-background)] text-[var(--color-text)]"
                       >
                         Profile
                       </Link>
-
                       <button
                         onClick={handleSignOut}
-                        className="text-left w-full px-3 py-2 rounded-lg transition-colors duration-200 hover:bg-red-500/10 text-red-500 font-semibold"
+                        className="theme-button-surface text-left w-full px-3 py-2 transition-colors duration-200 hover:bg-red-500/10 text-red-500 font-semibold"
                       >
                         Logout
                       </button>
@@ -377,7 +321,7 @@ export default function Navbar() {
                     <Link
                       href="/auth/login"
                       onClick={() => setIsProfileOpen(false)}
-                      className="px-3 py-2 rounded-lg transition-colors duration-200 hover:bg-[var(--color-background)] text-[var(--color-text)]"
+                      className="theme-button-surface px-3 py-2 transition-colors duration-200 hover:bg-[var(--color-background)] text-[var(--color-text)]"
                     >
                       Login / Sign Up
                     </Link>
@@ -386,7 +330,7 @@ export default function Navbar() {
               </div>
             </div>
 
-            {/* Mobile Hamburger Menu Button */}
+            {/* Mobile Menu Button */}
             <button
               className="md:hidden text-xl p-1 transition-transform duration-200 hover:scale-110 active:scale-95 text-[var(--color-text)]"
               onClick={() => setIsOpen(!isOpen)}
@@ -398,32 +342,9 @@ export default function Navbar() {
         </div>
       </div>
 
-      {/* Mobile Accordion Drawer */}
+      {/* Mobile Drawer */}
       {isOpen && (
-        <div className="md:hidden border-t border-[var(--color-border)] bg-[var(--color-surface)] backdrop-blur-3xl px-4 pt-2 pb-6 space-y-2">
-          {/* Mobile Theme Switcher Select */}
-          <div className="py-2">
-            <label className="block text-xs font-bold text-[var(--color-muted)] mb-1 uppercase tracking-wider">
-              Active Theme
-            </label>
-            <select
-              value={equippedThemeId}
-              onChange={(e) => equipTheme(e.target.value)}
-              aria-label="Select theme mobile"
-              className="w-full bg-[var(--color-background)] text-[var(--color-text)] border border-[var(--color-border)] px-3 py-2 rounded-lg text-sm font-semibold cursor-pointer outline-none"
-            >
-              {availableThemes.map((theme) => (
-                <option
-                  key={theme.id}
-                  value={theme.id}
-                  className="bg-[var(--color-surface)] text-[var(--color-text)]"
-                >
-                  🎨 {theme.name}
-                </option>
-              ))}
-            </select>
-          </div>
-
+        <div className="max-h-[calc(100dvh-4rem)] space-y-2 overflow-y-auto border-t border-[var(--color-border)] bg-[var(--color-surface)] px-4 pb-6 pt-2 backdrop-blur-3xl md:hidden">
           {navLinks.map((link) => {
             const hasChildren = Boolean(link.children);
             const isExpanded = expandedMobileMenu === link.name;
@@ -478,11 +399,7 @@ export default function Navbar() {
                         setIsOpen(false);
                       }
                     }}
-                    className={`block py-2 text-base font-medium transition-colors duration-200 ${
-                      link.comingSoon
-                        ? "text-[var(--color-muted)]"
-                        : "text-[var(--color-text)] hover:opacity-80"
-                    }`}
+                    className={`block py-2 text-base font-medium transition-colors duration-200 ${link.comingSoon ? "text-[var(--color-muted)]" : "text-[var(--color-text)] hover:opacity-80"}`}
                   >
                     {link.name}
                   </Link>
@@ -490,21 +407,6 @@ export default function Navbar() {
               </div>
             );
           })}
-        </div>
-      )}
-
-      {/* Toast Notification */}
-      {toastMounted && (
-        <div className="fixed bottom-6 left-1/2 -translate-x-1/2 z-50 pointer-events-none">
-          <div
-            className={`bg-[var(--color-surface)] backdrop-blur-2xl border border-[var(--color-border)] text-[var(--color-text)] px-5 py-2 rounded-xl shadow-xl text-sm transition-all duration-300 ease-in-out ${
-              toastVisible
-                ? "opacity-100 translate-y-0 scale-100"
-                : "opacity-0 translate-y-6 scale-95"
-            }`}
-          >
-            Events Coming Soon 🚀
-          </div>
         </div>
       )}
     </nav>

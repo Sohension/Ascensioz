@@ -1,8 +1,10 @@
 "use client";
 
 import Link from "next/link";
+import { useEffect, useState } from "react";
 import { Rajdhani } from "next/font/google";
-import { ArrowLeft, Maximize } from "lucide-react";
+import { ArrowLeft, Maximize, Smartphone } from "lucide-react";
+import styles from "./page.module.css";
 
 const rajdhani = Rajdhani({
   subsets: ["latin"],
@@ -13,13 +15,57 @@ function fullscreenGame() {
   const iframe = document.getElementById("game-frame") as HTMLIFrameElement;
 
   if (iframe?.requestFullscreen) {
-    iframe.requestFullscreen();
+    void iframe.requestFullscreen().then(() => {
+      const orientation = window.screen.orientation as ScreenOrientation & {
+        lock?: (mode: OrientationLockType) => Promise<void>;
+      };
+
+      void orientation.lock?.("landscape").catch(() => undefined);
+    });
   }
 }
 
 export default function PyronPage() {
+  const [isPortrait, setIsPortrait] = useState<boolean | null>(null);
+
+  useEffect(() => {
+    let frameId: number | null = null;
+
+    const updateOrientation = () => {
+      if (frameId !== null) {
+        window.cancelAnimationFrame(frameId);
+      }
+
+      frameId = window.requestAnimationFrame(() => {
+        setIsPortrait(window.innerHeight > window.innerWidth);
+        frameId = null;
+      });
+    };
+
+    updateOrientation();
+    window.addEventListener("resize", updateOrientation);
+    window.addEventListener("orientationchange", updateOrientation);
+
+    return () => {
+      window.removeEventListener("resize", updateOrientation);
+      window.removeEventListener("orientationchange", updateOrientation);
+      if (frameId !== null) {
+        window.cancelAnimationFrame(frameId);
+      }
+    };
+  }, []);
+
   return (
-    <main className={`${rajdhani.className} relative h-screen w-screen overflow-hidden bg-slate-950`}>
+    <main className={`${rajdhani.className} relative min-h-dvh w-full overflow-hidden bg-slate-950`}>
+      {isPortrait && (
+        <div className={styles.orientationOverlay} role="alert" aria-live="assertive">
+          <div className={styles.orientationMessage}>
+            <Smartphone className={styles.orientationIcon} aria-hidden="true" />
+            <h1>Please rotate your device to landscape mode</h1>
+          </div>
+        </div>
+      )}
+
       {/* Top Button Bar */}
       <div className="absolute top-0 left-0 right-0 z-50 flex items-center justify-between px-6 py-4 bg-slate-950/80 backdrop-blur-md border-b border-slate-800">
         {/* Back Button - Left */}
@@ -42,7 +88,10 @@ export default function PyronPage() {
       </div>
 
       {/* Game Frame */}
-      <div className="pt-16 h-full">
+      <div
+        className={`${styles.gameContainer} ${isPortrait ? styles.gameContainerBlocked : ""}`}
+        aria-hidden={isPortrait === true}
+      >
         <iframe
           id="game-frame"
           src="/game/index.html"

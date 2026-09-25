@@ -24,7 +24,7 @@ export default function CodeEditor({
   onSave,
 }: CodeEditorProps) {
   const beforeMount = useCallback((monaco: typeof import("monaco-editor")) => {
-    monaco.editor.defineTheme("ascension-dark", {
+    monaco.editor.defineTheme("ascensioz-dark", {
       base: "vs-dark",
       inherit: true,
       rules: [
@@ -54,7 +54,7 @@ export default function CodeEditor({
       },
     });
 
-    monaco.editor.defineTheme("ascension-light", {
+    monaco.editor.defineTheme("ascensioz-light", {
       base: "vs",
       inherit: true,
       rules: [
@@ -139,7 +139,7 @@ wordWrap: isMobile ? ("on" as const) : ("off" as const),
     <Editor
       height="100%"
       language={language}
-      theme={theme === "light" ? "ascension-light" : "ascension-dark"}
+      theme={theme === "light" ? "ascensioz-light" : "ascensioz-dark"}
       beforeMount={beforeMount}
       onMount={onMount}
       value={value}

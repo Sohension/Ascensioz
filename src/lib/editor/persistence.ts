@@ -6,7 +6,7 @@ export interface PersistedProject {
   explorerOpen: boolean;
 }
 
-const STORAGE_KEY = "ascension-ide-project";
+const STORAGE_KEY = "ascensioz-ide-project";
 
 export const DEFAULT_PROJECT: PersistedProject = {
   files: {

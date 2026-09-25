@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { useRouter } from "next/navigation";
 import { Rajdhani } from "next/font/google";
 
 const rajdhani = Rajdhani({
@@ -8,7 +9,14 @@ const rajdhani = Rajdhani({
   weight: ["400", "500", "600", "700"],
 });
 
-export default function SubmitButton({ challengeId }: { challengeId: string }) {
+export default function SubmitButton({
+  challengeId,
+  course,
+}: {
+  challengeId: string;
+  course: string;
+}) {
+  const router = useRouter();
   const [code, setCode] = useState("");
   const [loading, setLoading] = useState(false);
   const [buttonText, setButtonText] = useState("Submit Solution");
@@ -65,8 +73,8 @@ export default function SubmitButton({ challengeId }: { challengeId: string }) {
         );
 
         setTimeout(() => {
-          setButtonText("Submit Solution");
-        }, 1500);
+          router.replace(`/practice/${course}`);
+        }, 700);
       } else {
         setButtonText("❌ Incorrect!");
 

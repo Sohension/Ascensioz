@@ -1,11 +1,11 @@
 "use client";
 
 import React, { useState, useEffect } from "react";
-import { THEMES_CATALOG } from "@/config/themes";
+import { THEMES_CATALOG, THEME_RARITY_PRICES } from "@/config/themes";
 import { useTheme } from "@/context/ThemeContext";
 import { createClient } from "@/lib/client";
 
-export default function ThemeShopPage() {
+export default function ThemeShopContent() {
   const {
     equippedThemeId,
     ownedThemeIds,
@@ -39,7 +39,7 @@ export default function ThemeShopPage() {
     fetchUserCoins();
   }, [supabase]);
 
-  const handleUnlock = async (themeId: string, price: number = 100) => {
+  const handleUnlock = async (themeId: string, price: number) => {
     try {
       setLoadingThemeId(themeId);
       const {
@@ -104,7 +104,10 @@ export default function ThemeShopPage() {
           const isEquipped = equippedThemeId === theme.id;
           const isPreviewing = previewedTheme?.id === theme.id;
           const isPurchasing = loadingThemeId === theme.id;
-          const themePrice = 100;
+          const themePrice =
+            theme.id === "default"
+              ? 0
+              : THEME_RARITY_PRICES[theme.rarity];
 
           return (
             <div
@@ -121,8 +124,14 @@ export default function ThemeShopPage() {
                     <h3 className="text-lg font-semibold text-[var(--color-text)]">
                       {theme.name}
                     </h3>
+                    <span className="text-xs text-[var(--color-muted)]">
+                      {theme.mode === "dark" ? "🌃 Dark" : "☀️ Light"}
+                    </span>
+                    <span className="ml-2 text-xs font-semibold capitalize text-[var(--color-primary)]">
+                      {theme.rarity}
+                    </span>
                     {!isOwned && (
-                      <span className="text-xs text-[var(--color-muted)]">
+                      <span className="text-xs text-[var(--color-muted)] ml-2">
                         🪙 {themePrice} Coins
                       </span>
                     )}
@@ -138,27 +147,27 @@ export default function ThemeShopPage() {
                 <div className="flex items-center gap-2 mb-6">
                   <div
                     className="w-6 h-6 rounded-full border border-black/10 shadow-sm"
-                    style={{ backgroundColor: theme.colors.primary }}
+                    style={{ backgroundColor: theme.tokens.primary }}
                     title="Primary"
                   />
                   <div
                     className="w-6 h-6 rounded-full border border-black/10 shadow-sm"
-                    style={{ backgroundColor: theme.colors.secondary }}
+                    style={{ backgroundColor: theme.tokens.secondary }}
                     title="Secondary"
                   />
                   <div
                     className="w-6 h-6 rounded-full border border-black/10 shadow-sm"
-                    style={{ backgroundColor: theme.colors.accent }}
+                    style={{ backgroundColor: theme.tokens.accent }}
                     title="Accent"
                   />
                   <div
                     className="w-6 h-6 rounded-full border border-black/10 shadow-sm"
-                    style={{ backgroundColor: theme.colors.background }}
+                    style={{ backgroundColor: theme.tokens.background }}
                     title="Background"
                   />
                   <div
                     className="w-6 h-6 rounded-full border border-black/10 shadow-sm"
-                    style={{ backgroundColor: theme.colors.surface }}
+                    style={{ backgroundColor: theme.tokens.surface }}
                     title="Surface"
                   />
                 </div>

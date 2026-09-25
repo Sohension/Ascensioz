@@ -19,16 +19,16 @@ export default function Paths() {
 
       <div className="absolute inset-0 bg-[radial-gradient(circle_at_80%_15%,rgba(250,204,21,0.24),transparent_24%),radial-gradient(circle_at_20%_92%,rgba(16,185,129,0.22),transparent_20%)]" />
 
-      <section className="relative z-10 flex min-h-screen w-full items-center overflow-hidden">
-        <div className="relative z-10 w-full px-6 py-28 sm:px-10 md:px-20 lg:px-28">
-          <div className="grid items-center gap-12 lg:grid-cols-[minmax(640px,1.2fr)_minmax(280px,0.68fr)]">
-            <div className="max-w-4xl rounded-[34px] border border-white/15 bg-black/30 p-8 backdrop-blur-md sm:p-10 lg:p-14">
+      <section className="relative z-10 flex min-h-dvh w-full items-center overflow-hidden">
+        <div className="relative z-10 w-full px-4 py-24 sm:px-8 sm:py-28 md:px-12 lg:px-20 xl:px-28">
+          <div className="grid items-center gap-8 lg:grid-cols-[minmax(0,1.2fr)_minmax(240px,0.68fr)] lg:gap-10 xl:gap-12">
+            <div className="max-w-4xl rounded-[28px] border border-white/15 bg-black/30 p-6 backdrop-blur-md sm:rounded-[34px] sm:p-10 lg:p-14">
               <div className="border-l-4 border-yellow-400 pl-5 sm:pl-7">
                 <p className={`${rajdhani.className} mb-3 text-sm font-bold uppercase tracking-[0.24em] text-yellow-300`}>
                   Learning Paths
                 </p>
                 <h1
-                  className={`${montserrat.className} text-4xl font-semibold leading-tight text-white sm:text-5xl md:text-6xl lg:text-7xl`}
+                  className={`${montserrat.className} text-4xl font-semibold leading-tight text-white sm:text-5xl md:text-6xl lg:text-[clamp(3.5rem,5vw,5rem)]`}
                 >
                   Enter the world of Python.
                 </h1>
@@ -56,7 +56,7 @@ export default function Paths() {
               </div>
             </div>
 
-            <aside className="rounded-[28px] border border-emerald-300/35 bg-slate-900/65 p-6 shadow-[0_20px_60px_rgba(0,0,0,0.45)] backdrop-blur-xl">
+            <aside className="rounded-[28px] border border-emerald-300/35 bg-slate-900/65 p-5 shadow-[0_20px_60px_rgba(0,0,0,0.45)] backdrop-blur-xl sm:p-6">
               <div className="flex items-center justify-between">
                 <span className="text-[10px] font-black uppercase tracking-[0.2em] text-emerald-300">
                   Current route
@@ -108,12 +108,12 @@ export default function Paths() {
         </div>
       </section>
 
-      <section className="relative z-10 px-6 py-12 sm:px-10 sm:py-16 md:px-20 lg:px-28">
-        <div className="mx-auto max-w-6xl rounded-[34px] border border-white/12 bg-slate-900/60 p-7 backdrop-blur-xl shadow-[0_16px_50px_rgba(0,0,0,0.38)]">
-          <div className="mb-8 flex items-end justify-between gap-4">
+      <section className="relative z-10 px-4 py-10 sm:px-8 sm:py-16 md:px-12 lg:px-20 xl:px-28">
+        <div className="mx-auto max-w-6xl rounded-[28px] border border-white/12 bg-slate-900/60 p-5 shadow-[0_16px_50px_rgba(0,0,0,0.38)] backdrop-blur-xl sm:rounded-[34px] sm:p-7">
+          <div className="mb-8 flex flex-col items-start justify-between gap-4 sm:flex-row sm:items-end">
             <div>
               <p className="text-[10px] font-black uppercase tracking-[0.24em] text-yellow-300">
-                Ascension Academy
+                Ascensioz Academy
               </p>
               <h1
                 className={`${montserrat.className} mt-2 text-3xl font-semibold text-white sm:text-4xl md:text-5xl`}

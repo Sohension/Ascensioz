@@ -1,7 +1,7 @@
 import PythonIDE from "@/components/ide/PythonIDE";
 
 export const metadata = {
-  title: "Ascension Python IDE",
+  title: "Ascensioz Python IDE",
   description: "A responsive, browser-based Python IDE with a real execution sandbox.",
 };
 

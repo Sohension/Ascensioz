@@ -6,7 +6,6 @@ import { AnimatedGridPattern } from "@/components/ui/animated-grid-pattern";
 import { Rajdhani, Bebas_Neue } from "next/font/google";
 import Navbar from "@/components/big-components/Navbar";
 import { motion } from "framer-motion";
-import { useTheme } from "next-themes";
 
 const rajdhani = Rajdhani({
   weight: ["400", "500", "600", "700"],
@@ -86,34 +85,25 @@ export default function Hero() {
     "Problem Solving",
   ];
 
-  // Typewriter phrases for the main hero heading
   const heroTypewriterPhrases = [
     "Level up your code. Leave the rest behind.",
     "Build skills that matter. Leave the rest behind.",
     "Master programming. Leave the rest behind.",
   ];
 
-  const [mounted, setMounted] = useState<boolean>(false);
   const [currentPhraseIndex, setCurrentPhraseIndex] = useState<number>(0);
   const [currentText, setCurrentText] = useState<string>("");
   const [isDeleting, setIsDeleting] = useState<boolean>(false);
-  const { resolvedTheme } = useTheme();
-  const isDark = mounted && resolvedTheme === "dark";
 
-  useEffect(() => {
-    setMounted(true);
-  }, []);
-
-  // Typewriter effect logic for the main header
   useEffect(() => {
     const fullText = heroTypewriterPhrases[currentPhraseIndex];
-    let typingSpeed = isDeleting ? 40 : 80;
+    const typingSpeed = isDeleting ? 40 : 80;
 
     const handleTyping = () => {
       if (!isDeleting) {
         setCurrentText(fullText.substring(0, currentText.length + 1));
         if (currentText === fullText) {
-          setTimeout(() => setIsDeleting(true), 2000); // Wait before erasing
+          setTimeout(() => setIsDeleting(true), 2000);
         }
       } else {
         setCurrentText(fullText.substring(0, currentText.length - 1));
@@ -140,7 +130,7 @@ export default function Hero() {
 
   return (
     <div
-      className={`relative overflow-x-hidden min-h-screen antialiased [background:radial-gradient(50%_50%_at_59%_55%,rgba(0,0,0,0.3)_36%,rgba(44,44,44,0.3)_100%),linear-gradient(0deg,rgba(11,15,20,1)_0%,rgba(11,15,20,1)_100%)] text-slate-100`}
+      className={`relative min-h-dvh overflow-x-hidden antialiased [background:radial-gradient(50%_50%_at_59%_55%,rgba(0,0,0,0.3)_36%,rgba(44,44,44,0.3)_100%),linear-gradient(0deg,rgba(11,15,20,1)_0%,rgba(11,15,20,1)_100%)] text-slate-100`}
     >
       {/* Original Navbar retained safely */}
       <Navbar />
@@ -153,7 +143,7 @@ export default function Hero() {
           muted
           loop
           playsInline
-          className="absolute top-0 left-0 w-full h-[1024px] object-cover opacity-25"
+          className="absolute left-0 top-0 h-[min(100dvh,1024px)] w-full object-cover opacity-25"
         >
           <source src="/shopwebm.webm" type="video/webm" />
           Your browser does not support the video tag.
@@ -176,7 +166,7 @@ export default function Hero() {
 
       <div className="px-6 md:px-24 xl:px-28 max-w-7xl mx-auto pb-20 relative z-10">
         {/* ================= SECTION 1 — HERO (CENTER ALIGNED) ================= */}
-        <section className="relative min-h-[85vh] flex items-center justify-center pt-28 sm:pt-36 overflow-hidden text-center">
+        <section className="relative flex min-h-[78dvh] items-center justify-center overflow-hidden pt-24 text-center sm:min-h-[85dvh] sm:pt-36">
           <motion.div
             initial={{ opacity: 0, y: 30 }}
             animate={{ opacity: 1, y: 0 }}
@@ -187,14 +177,18 @@ export default function Hero() {
               initial={{ opacity: 0, y: 20, filter: "blur(10px)" }}
               animate={{ opacity: 1, y: 0, filter: "blur(0px)" }}
               transition={{ duration: 1.2, ease: "easeOut", delay: 0.2 }}
-              className="relative min-h-[140px] md:min-h-[200px] w-full flex items-center justify-center"
+              className="relative flex min-h-[180px] w-full flex-col items-center justify-center sm:min-h-[200px]"
             >
-              <h1
-                className={`${bebasNeue.className} relative text-5xl sm:text-7xl md:text-[96.6px] tracking-[-2.41px] leading-[1.1] md:leading-[100px] text-white`}
+              <p
+                className={`${rajdhani.className} mb-3 text-xs font-bold uppercase tracking-[0.35em] text-[#ffbb00] sm:text-sm`}
               >
-                {/* Center-aligned Typewriter Header */}
+                Ascensioz Learning Platform
+              </p>
+              <h1
+                className={`${bebasNeue.className} relative max-w-5xl text-5xl leading-[1.05] tracking-[-1px] text-white sm:text-7xl md:text-[clamp(4.5rem,8vw,6.1rem)] md:leading-[1.04]`}
+              >
                 <span>{currentText}</span>
-                <span className="inline-block w-2 bg-[#ffbb00] ml-1 animate-pulse h-[0.8em] align-middle" />
+                <span className="ml-1 inline-block h-[0.8em] w-2 bg-[#ffbb00] align-middle animate-pulse" />
               </h1>
             </motion.div>
 
@@ -232,15 +226,15 @@ export default function Hero() {
 
         {/* ================= SECTION 2 — WHY WE EXIST ================= */}
         <FadeInSection>
-          <section className="relative min-h-[75vh] flex flex-col justify-center pt-24 sm:pt-32 border-t border-slate-800 mt-20 md:mt-48">
-            <div className="flex flex-col gap-10 md:gap-16 max-w-5xl">
+          <section className="relative min-h-[75vh] flex flex-col items-center justify-center pt-24 text-center sm:pt-32 border-t border-slate-800 mt-20 md:mt-48">
+            <div className="flex max-w-5xl flex-col items-center gap-10 md:gap-16">
               <h2
                 className={`${bebasNeue.className} text-4xl sm:text-6xl md:text-7xl tracking-wide text-white`}
               >
                 Education deserves better games.
               </h2>
               <div
-                className={`${rajdhani.className} text-xl sm:text-2xl md:text-3xl space-y-6 font-medium tracking-wide max-w-4xl leading-relaxed text-slate-400`}
+                className={`${rajdhani.className} max-w-4xl space-y-6 text-xl font-medium leading-relaxed tracking-wide text-slate-400 sm:text-2xl md:text-3xl`}
               >
                 <p>
                   Learning programming should not mean watching hours of videos
@@ -261,17 +255,17 @@ export default function Hero() {
 
         {/* ================= SECTION 3 — LEARN THROUGH ADVENTURES ================= */}
         <FadeInSection>
-          <section className="relative min-h-[75vh] flex flex-col justify-center pt-24 sm:pt-32 border-t border-slate-800 bg-slate-950/70 mt-20 md:mt-48 px-4 rounded-2xl">
-            <div className="space-y-10 md:space-y-16 max-w-5xl">
+          <section className="relative min-h-[75vh] flex flex-col items-center justify-center rounded-2xl border-t border-slate-800 bg-slate-950/70 px-4 pt-24 text-center sm:pt-32 mt-20 md:mt-48">
+            <div className="max-w-5xl space-y-10 md:space-y-16">
               <h2
                 className={`${bebasNeue.className} text-4xl sm:text-6xl md:text-7xl tracking-wide text-white`}
               >
                 Every game teaches something new.
               </h2>
               <p
-                className={`${rajdhani.className} text-xl sm:text-2xl md:text-3xl max-w-5xl font-medium tracking-wide leading-relaxed text-slate-400`}
+                className={`${rajdhani.className} mx-auto max-w-5xl text-xl font-medium leading-relaxed tracking-wide text-slate-400 sm:text-2xl md:text-3xl`}
               >
-                Today, your journey begins in Ascension, an action RPG where
+                Today, your journey begins in Ascensioz, an action RPG where
                 coding powers your progress. Tomorrow, you will explore entirely
                 new worlds, genres, and challenges.
               </p>
@@ -282,7 +276,7 @@ export default function Hero() {
                 >
                   Our library will continue growing with games that teach:
                 </h3>
-                <div className="flex flex-wrap gap-3 md:gap-4 max-w-5xl">
+                <div className="mx-auto flex max-w-5xl flex-wrap justify-center gap-3 md:gap-4">
                   {learningTopics.map((topic, index) => (
                     <span
                       key={index}
@@ -299,8 +293,8 @@ export default function Hero() {
 
         {/* ================= SECTION 4 — PROGRESSION ================= */}
         <FadeInSection>
-          <section className="relative min-h-[75vh] flex flex-col justify-center pt-24 sm:pt-32 border-t border-slate-800 mt-20 md:mt-48">
-            <div className="flex flex-col gap-10 md:gap-16 max-w-5xl">
+          <section className="relative min-h-[75vh] flex flex-col items-center justify-center pt-24 text-center sm:pt-32 border-t border-slate-800 mt-20 md:mt-48">
+            <div className="flex max-w-5xl flex-col items-center gap-10 md:gap-16">
               <div className="space-y-6">
                 <h2
                   className={`${bebasNeue.className} text-4xl sm:text-6xl md:text-7xl tracking-wide text-white`}
@@ -324,7 +318,7 @@ export default function Hero() {
                 ].map((item, i) => (
                   <div
                     key={i}
-                    className="p-8 rounded-3xl bg-slate-900/80 border border-slate-700/70 hover:border-[#ffbb00]/60 transition-all flex flex-col justify-between"
+                    className="flex flex-col items-center justify-between rounded-3xl border border-slate-700/70 bg-slate-900/80 p-8 text-center transition-all hover:border-[#ffbb00]/60"
                   >
                     <span className="text-4xl block mb-4">{item.icon}</span>
                     <span
@@ -370,13 +364,13 @@ export default function Hero() {
       </div>
 
       {/* FOOTER */}
-      <footer className="w-full border-t border-slate-800 bg-[#0b0f14] text-zinc-400 py-10 px-6 md:px-12 text-sm">
-        <div className="max-w-7xl mx-auto flex flex-col md:flex-row items-center justify-between gap-6">
-          <div className="flex items-center gap-3">
+      <footer className="w-full border-t border-slate-800 bg-[#0b0f14] px-6 py-10 text-center text-sm text-zinc-400 md:px-12">
+        <div className="mx-auto flex max-w-7xl flex-col items-center justify-center gap-6">
+          <div className="flex items-center justify-center gap-3">
             <span
               className={`${rajdhani.className} font-bold text-white tracking-wider text-lg`}
             >
-              ASCENSION 2026
+              ASCENSIOZ 2026
             </span>
             <span className="text-zinc-700">|</span>
             <span className={rajdhani.className}>All rights reserved.</span>

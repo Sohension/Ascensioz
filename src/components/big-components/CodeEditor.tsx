@@ -12,7 +12,7 @@ export default function CodeEditor({
 
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const handleBeforeMount = (monaco: any) => {
-    monaco.editor.defineTheme("ascension-theme", {
+    monaco.editor.defineTheme("ascensioz-theme", {
       base: "vs-dark",
       inherit: true,
       rules: [
@@ -45,7 +45,7 @@ export default function CodeEditor({
     <Editor
       height="400px"
       defaultLanguage="python"
-      theme="ascension-theme"
+      theme="ascensioz-theme"
       beforeMount={handleBeforeMount}
       value={code}
       onChange={(value) => {

@@ -2,6 +2,7 @@ import Link from "next/link";
 import { getCourses } from "@/lib/courses";
 import { getChallenges } from "@/lib/challenges";
 import { pythonPracticeQuestions } from "@/lib/python-practice";
+import { createClient } from "@/lib/server";
 import { Montserrat, Rajdhani } from "next/font/google";
 
 import {
@@ -83,6 +84,23 @@ export default async function CoursePage({
       ? pythonPracticeQuestions
       : await getChallenges(course.id);
 
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  const { data: completions } = user
+    ? await supabase
+        .from("practice_completions")
+        .select("question_id")
+        .eq("user_id", user.id)
+    : { data: [] };
+  const completedQuestionIds = new Set(
+    (completions ?? []).map((completion) => completion.question_id),
+  );
+  const availableChallenges = challenges.filter(
+    (challenge) => !completedQuestionIds.has(challenge.id),
+  );
+
   return (
     <div className="min-h-screen bg-linear-to-br from-slate-100 via-slate-200 to-slate-300 dark:from-gray-900 dark:via-gray-900 dark:to-gray-900 px-4 pb-10 pt-8 sm:px-6 sm:pt-10 md:px-8 lg:px-10 lg:pb-14">
       {/* Header */}
@@ -105,7 +123,7 @@ export default async function CoursePage({
           className={`${rajdhani.className} mt-4 max-w-3xl text-base leading-7 text-slate-700 dark:text-slate-300 sm:text-lg md:text-xl`}
         >
           Complete coding missions, earn XP, and master {course.name}. Every
-          solved challenge makes your Ascension stronger.
+          solved challenge makes your Ascensioz stronger.
         </p>
 
         {/* Stats */}
@@ -113,7 +131,7 @@ export default async function CoursePage({
         <div className="mt-10 grid grid-cols-2 gap-4 sm:grid-cols-3">
           <div className="rounded-2xl border border-slate-200 dark:border-gray-700 bg-white dark:bg-gray-800 p-5 shadow-md">
             <div className="text-3xl font-bold text-blue-600 dark:text-blue-400">
-              {challenges.length}
+              {availableChallenges.length}
             </div>
 
             <div
@@ -152,7 +170,7 @@ export default async function CoursePage({
       {/* Challenge Cards */}
 
       <div className="mx-auto grid max-w-7xl grid-cols-1 gap-6 lg:grid-cols-2">
-        {challenges.map((ch, index) => (
+        {availableChallenges.map((ch, index) => (
           <Link
             key={ch.id}
             href={`/practice/${courseSlug}/${ch.id}`}
@@ -269,7 +287,7 @@ export default async function CoursePage({
           </Link>
         ))}
 
-        {challenges.length === 0 && (
+        {availableChallenges.length === 0 && (
           <Card className="col-span-full border border-slate-300 dark:border-gray-700 bg-linear-to-br from-white via-slate-50 to-slate-100 dark:from-gray-800 dark:via-gray-800 dark:to-gray-800 shadow-md">
             <CardContent className="flex flex-col items-center justify-center py-20 text-center">
               <div className="mb-6 flex h-20 w-20 items-center justify-center rounded-full bg-blue-100 dark:bg-blue-900 text-5xl">

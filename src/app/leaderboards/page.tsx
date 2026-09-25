@@ -1,5 +1,5 @@
 import LeaderboardExperience from "@/components/community/LeaderboardExperience";
 
-export default function CommunityLeaderboardPage() {
+export default function LeaderboardsPage() {
   return <LeaderboardExperience />;
 }

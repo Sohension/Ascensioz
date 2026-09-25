@@ -2,6 +2,7 @@ import { getChallenge } from "@/lib/challenges";
 import { notFound } from "next/navigation";
 import SubmitButton from "@/components/challengeSubmit";
 import BackButton from "@/components/big-components/BackBtn";
+import { createClient } from "@/lib/server";
 
 
 import { Montserrat, Rajdhani } from "next/font/google";
@@ -50,6 +51,21 @@ function difficultyColor(difficulty: string) {
 
 export default async function ChallengePage({ params }: Props) {
   const { course, id } = await params;
+
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  if (user) {
+    const { data: completion } = await supabase
+      .from("practice_completions")
+      .select("question_id")
+      .eq("user_id", user.id)
+      .eq("question_id", id)
+      .maybeSingle();
+
+    if (completion) notFound();
+  }
 
   const challenge = await getChallenge(id);
 
@@ -221,7 +237,7 @@ export default async function ChallengePage({ params }: Props) {
 
           <CardContent>
             <div className="rounded-2xl border border-slate-200 dark:border-gray-700 bg-slate-950 p-5 shadow-inner">
-              <SubmitButton challengeId={challenge.id} />
+              <SubmitButton challengeId={challenge.id} course={course} />
             </div>
           </CardContent>
         </Card>

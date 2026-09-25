@@ -1,0 +1,44 @@
+.orientationOverlay {
+  position: fixed;
+  inset: 0;
+  z-index: 100;
+  display: grid;
+  min-height: 100dvh;
+  place-items: center;
+  padding: 2rem;
+  background: #020617;
+  color: #f8fafc;
+  text-align: center;
+}
+
+.orientationMessage {
+  display: grid;
+  justify-items: center;
+  gap: 1rem;
+  max-width: 28rem;
+}
+
+.orientationMessage h1 {
+  margin: 0;
+  font-size: clamp(1.5rem, 5vw, 2.25rem);
+  line-height: 1.15;
+}
+
+.orientationIcon {
+  width: 4rem;
+  height: 4rem;
+  color: #facc15;
+  transform: rotate(90deg);
+}
+
+.gameContainer {
+  height: 100%;
+  padding-top: 4rem;
+  transition: filter 180ms ease, opacity 180ms ease;
+}
+
+.gameContainerBlocked {
+  pointer-events: none;
+  filter: blur(12px);
+  opacity: 0;
+}

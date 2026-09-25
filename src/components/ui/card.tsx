@@ -19,7 +19,6 @@ function Card({
         flex
         flex-col
         gap-4
-        rounded-2xl
         bg-card
         py-4
         text-sm
@@ -33,7 +32,7 @@ function Card({
 
         hover:-translate-y-1
         hover:shadow-xl
-        hover:ring-blue-300/40
+        hover:ring-primary/40
 
         has-data-[slot=card-footer]:pb-0
         has-[>img:first-child]:pt-0
@@ -48,11 +47,11 @@ function Card({
       )}
       {...props}
     >
-      {/* Top Gradient Accent */}
-      <div className="absolute inset-x-0 top-0 h-1 bg-linear-to-r from-cyan-400 via-blue-500 to-indigo-500" />
+      {/* Top accent follows the active theme's primary language. */}
+      <div className="theme-card-accent absolute inset-x-0 top-0 h-1" />
 
       {/* Decorative Glow */}
-      <div className="pointer-events-none absolute -right-12 -top-12 h-32 w-32 rounded-full bg-blue-400/15 blur-3xl transition-opacity duration-300 group-hover/card:bg-blue-400/25" />
+      <div className="theme-card-glow pointer-events-none absolute -right-12 -top-12 h-32 w-32 rounded-full blur-3xl transition-opacity duration-300" />
 
       {props.children}
     </div>
